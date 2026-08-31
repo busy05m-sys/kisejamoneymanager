@@ -274,8 +274,192 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
 .fab-wrap{position:relative;display:flex;align-items:center}
 .fab-wrap:hover .fab-lbl{opacity:1}
 </style>
+
+<!-- ═══ FIREBASE (Auth + Firestore) ═══ -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAlKtc9VUsVHtIOUK4NiyPloDTAQi3edQU",
+    authDomain: "kiseja-money-manager-c1867.firebaseapp.com",
+    projectId: "kiseja-money-manager-c1867",
+    storageBucket: "kiseja-money-manager-c1867.firebasestorage.app",
+    messagingSenderId: "738457948861",
+    appId: "1:738457948861:web:281a2d849c9a5db66c9dd4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+  let currentUID = null;
+
+  function swAuthErr(code){
+    const map = {
+      'auth/email-already-in-use':'Barua pepe hii tayari ina akaunti. Jaribu kuingia (Ingia) badala ya kujisajili.',
+      'auth/invalid-email':'Barua pepe si sahihi.',
+      'auth/weak-password':'Nenosiri ni fupi mno (angalau herufi 6).',
+      'auth/user-not-found':'Akaunti haipo kwa barua pepe hii. Bofya "Jisajili" kuanzisha mpya.',
+      'auth/wrong-password':'Nenosiri si sahihi.',
+      'auth/invalid-credential':'Barua pepe au nenosiri si sahihi.',
+      'auth/missing-password':'Andika nenosiri.',
+      'auth/too-many-requests':'Majaribio mengi yameshindwa. Subiri kidogo kisha jaribu tena.',
+      'auth/network-request-failed':'Hitilafu ya mtandao. Angalia intaneti yako.'
+    };
+    return map[code] || ('Hitilafu imetokea: '+code);
+  }
+  function authMsg(msg,ok){
+    const el=document.getElementById('auth-msg');
+    if(!el)return;
+    el.textContent=msg||'';
+    el.style.display=msg?'block':'none';
+    el.style.color = ok ? '#2E7D32' : '#C62828';
+  }
+  function setAuthBusy(busy){
+    document.querySelectorAll('.auth-btn').forEach(b=>b.disabled=busy);
+  }
+  function doRegister(){
+    const email=document.getElementById('auth-email').value.trim();
+    const pass=document.getElementById('auth-password').value;
+    authMsg('');
+    if(!email||!pass){authMsg('Jaza barua pepe na nenosiri.');return;}
+    if(pass.length<6){authMsg('Nenosiri liwe na herufi angalau 6.');return;}
+    setAuthBusy(true);
+    auth.createUserWithEmailAndPassword(email,pass)
+      .catch(e=>authMsg(swAuthErr(e.code)))
+      .finally(()=>setAuthBusy(false));
+  }
+  function doLogin(){
+    const email=document.getElementById('auth-email').value.trim();
+    const pass=document.getElementById('auth-password').value;
+    authMsg('');
+    if(!email||!pass){authMsg('Jaza barua pepe na nenosiri.');return;}
+    setAuthBusy(true);
+    auth.signInWithEmailAndPassword(email,pass)
+      .catch(e=>authMsg(swAuthErr(e.code)))
+      .finally(()=>setAuthBusy(false));
+  }
+  function doResetPassword(){
+    const email=document.getElementById('auth-email').value.trim();
+    if(!email){authMsg('Andika barua pepe yako juu kwanza, kisha bofya hapa tena.');return;}
+    setAuthBusy(true);
+    auth.sendPasswordResetEmail(email)
+      .then(()=>authMsg('✅ Barua pepe ya kubadili nenosiri imetumwa. Angalia inbox yako (na Spam).',true))
+      .catch(e=>authMsg(swAuthErr(e.code)))
+      .finally(()=>setAuthBusy(false));
+  }
+  function doLogout(){
+    if(confirm('Una uhakika unataka kutoka (logout)?')) auth.signOut();
+  }
+
+  // ── Cloud sync (per-user, private data) ──────────────────
+  function cloudDocRef(){ return db.collection('kmm_users').doc(currentUID); }
+  async function loadFromCloud(){
+    try{
+      const snap=await cloudDocRef().get();
+      if(snap.exists){
+        const d=snap.data();
+        TXN=d.transactions||[];
+        localStorage.setItem(KEY_LIVE, JSON.stringify(d.livestock||[]));
+        localStorage.setItem(KEY_VEHS, JSON.stringify(d.vehicles||[]));
+        localStorage.setItem(KEY_PROP, JSON.stringify(d.properties||[]));
+        localStorage.setItem(KEY_LAND, JSON.stringify(d.land||[]));
+        localStorage.setItem(KEY_SOC,  JSON.stringify(d.social||[]));
+        localStorage.setItem(KEY_CATS, JSON.stringify(d.custom_cats||[]));
+      } else {
+        TXN=[];
+        await cloudDocRef().set({
+          transactions:[], livestock:[], vehicles:[], properties:[],
+          land:[], social:[], custom_cats:[], updated:new Date().toISOString()
+        });
+      }
+    }catch(e){
+      console.error('Cloud load error:',e);
+      toast('⚠️ Imeshindikana kupakia data kutoka mtandaoni. Angalia intaneti yako.','err');
+    }
+  }
+  let saveCloudTimer=null;
+  function saveAllToCloud(){
+    if(!currentUID) return;
+    clearTimeout(saveCloudTimer);
+    saveCloudTimer=setTimeout(async ()=>{
+      try{
+        await cloudDocRef().set({
+          transactions:TXN,
+          livestock:loadStore(KEY_LIVE,[]),
+          vehicles:loadStore(KEY_VEHS,[]),
+          properties:loadStore(KEY_PROP,[]),
+          land:loadStore(KEY_LAND,[]),
+          social:loadStore(KEY_SOC,[]),
+          custom_cats:loadStore(KEY_CATS,[]),
+          updated:new Date().toISOString()
+        },{merge:true});
+      }catch(e){
+        console.error('Cloud save error:',e);
+        toast('⚠️ Imeshindikana kuhifadhi mtandaoni. Data ipo salama kwenye kifaa chako, itajaribu tena.','err');
+      }
+    }, 600);
+  }
+
+  auth.onAuthStateChanged(async function(user){
+    const authScreen=document.getElementById('auth-screen');
+    const appContent=document.getElementById('app-content');
+    if(user){
+      currentUID=user.uid;
+      authScreen.style.display='none';
+      appContent.style.display='block';
+      const lbl=document.getElementById('user-email-label');
+      if(lbl) lbl.textContent=user.email;
+      await init();
+    } else {
+      currentUID=null;
+      authScreen.style.display='flex';
+      appContent.style.display='none';
+    }
+  });
+</script>
 </head>
 <body>
+
+<!-- ═══ AUTH SCREEN (login / register) ═══ -->
+<div id="auth-screen" style="display:flex;min-height:100vh;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#1A237E,#283593 60%,#3949AB);padding:1.2rem">
+  <div style="background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.35);
+    padding:2rem 1.6rem;max-width:380px;width:100%">
+    <div style="text-align:center;margin-bottom:1.4rem">
+      <div style="font-size:2.4rem">💰</div>
+      <h1 style="font-size:1.15rem;font-weight:800;color:#1A237E;margin-top:.3rem">KISEJA MONEY MANAGER</h1>
+      <div style="font-size:.78rem;color:#546E7A;margin-top:.2rem">Ingia au jisajili kutumia akaunti yako binafsi</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.7rem">
+      <div>
+        <label style="font-size:.72rem;font-weight:700;color:#546E7A;text-transform:uppercase;letter-spacing:.05em">Barua Pepe</label>
+        <input id="auth-email" type="email" placeholder="wewe@mfano.com" autocomplete="email"
+          style="width:100%;padding:.65rem .8rem;border:1.5px solid #C5CAE9;border-radius:8px;font:inherit;font-size:.9rem;margin-top:.25rem">
+      </div>
+      <div>
+        <label style="font-size:.72rem;font-weight:700;color:#546E7A;text-transform:uppercase;letter-spacing:.05em">Nenosiri</label>
+        <input id="auth-password" type="password" placeholder="Angalau herufi 6" autocomplete="current-password"
+          style="width:100%;padding:.65rem .8rem;border:1.5px solid #C5CAE9;border-radius:8px;font:inherit;font-size:.9rem;margin-top:.25rem">
+      </div>
+      <div id="auth-msg" style="display:none;font-size:.8rem;font-weight:600;padding:.5rem .7rem;background:#FFEBEE;border-radius:6px"></div>
+      <button class="auth-btn" onclick="doLogin()"
+        style="background:#1A237E;color:#fff;border:none;padding:.75rem;border-radius:8px;font:inherit;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.3rem">
+        Ingia
+      </button>
+      <button class="auth-btn" onclick="doRegister()"
+        style="background:#fff;color:#1A237E;border:1.5px solid #1A237E;padding:.75rem;border-radius:8px;font:inherit;font-weight:700;font-size:.92rem;cursor:pointer">
+        Jisajili (Akaunti Mpya)
+      </button>
+      <a class="auth-btn" onclick="doResetPassword()"
+        style="text-align:center;font-size:.8rem;color:#3949AB;cursor:pointer;margin-top:.2rem;text-decoration:underline">
+        Umesahau nenosiri?
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP CONTENT (hidden until logged in) ═══ -->
+<div id="app-content" style="display:none">
 
 <div class="topbar">
   <div class="brand">
@@ -286,6 +470,15 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+    <div style="font-size:.72rem;padding:.25rem .6rem;background:rgba(255,255,255,.12);border-radius:6px;white-space:nowrap;color:#fff">
+      👤 <span id="user-email-label"></span>
+    </div>
+    <button onclick="doLogout()" title="Toka kwenye akaunti"
+      style="background:rgba(198,40,40,.25);border:1.5px solid rgba(198,40,40,.5);color:#fff;
+             padding:.35rem .7rem;border-radius:6px;font:inherit;font-size:.76rem;
+             font-weight:700;cursor:pointer;white-space:nowrap">
+      🚪 Toka
+    </button>
     <div id="file-status" style="font-size:.75rem;padding:.25rem .5rem;background:rgba(255,255,255,.1);border-radius:6px;white-space:nowrap">
       <span style="color:#546E7A;font-weight:700">⚫ Inaangalia...</span>
     </div>
@@ -1582,39 +1775,23 @@ function updateStatus(){
 
 // ── Main save function ────────────────────────────────────
 async function ls(){
-  // 1. localStorage
+  // 1. localStorage (fast local cache)
   try{ localStorage.setItem(KEY,JSON.stringify(TXN)); }catch(e){}
   // 2. IndexedDB (backup)
   await idbSet(TXN);
-  // 3. Real file (if connected)
+  // 3. Real file (if connected) / auto-download fallback
   if(fileHandle){ await writeToFile(TXN); }
   else{
     saveCount++;
     if(saveCount%AUTO_DL_EVERY===0){ autoDownload(); }
   }
+  // 4. Cloud (Firestore) - private per-account storage
+  saveAllToCloud();
 }
 
-// ── Load function (tries all sources) ────────────────────
+// ── Load function: cloud (Firestore) is the source of truth ──
 async function load(){
-  // Priority: localStorage > IDB > SEED
-  let loaded=false;
-  // Try localStorage
-  try{
-    const s=localStorage.getItem(KEY);
-    if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length>0){TXN=p;loaded=true;}}
-  }catch(e){}
-  // Try IDB if localStorage empty
-  if(!loaded){
-    try{
-      const idb=await idbGet();
-      if(idb&&Array.isArray(idb)&&idb.length>0){TXN=idb;loaded=true;ls();}
-    }catch(e){}
-  }
-  // Fall to seed
-  if(!loaded){
-    TXN=JSON.parse(JSON.stringify(SEED_DATA));
-    await ls();
-  }
+  await loadFromCloud();
   updateStatus();
 }
 
@@ -2177,7 +2354,7 @@ const KEY_SOC  = "kmm_social";
 const KEY_CATS = "kmm_custom_cats";
 
 function loadStore(key, def){ try{return JSON.parse(localStorage.getItem(key))||def;}catch{return def;} }
-function saveStore(key, data){ localStorage.setItem(key, JSON.stringify(data)); }
+function saveStore(key, data){ localStorage.setItem(key, JSON.stringify(data)); saveAllToCloud(); }
 
 // Initial livestock state from user data
 let LIVESTOCK = loadStore(KEY_LIVE, {
@@ -2942,7 +3119,7 @@ function onAlTypeChange(){
     }
   }
 }
-init();
+// init() is now triggered automatically after login (see auth.onAuthStateChanged above)
 </script>
 
 <!-- Recovery Modal -->
@@ -3190,6 +3367,8 @@ init();
     </div>
   </div>
 </div>
+
+</div><!-- /#app-content -->
 
 </body>
 </html>
