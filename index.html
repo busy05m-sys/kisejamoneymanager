@@ -21,8 +21,8 @@ html{font-size:15px}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var(--navy);min-height:100vh}
 
 /* TOP BAR */
-.topbar{background:var(--navy);color:#fff;display:flex;align-items:center;
-  justify-content:space-between;padding:0 1.4rem;height:56px;
+.topbar{background:var(--navy);color:#fff;display:flex;align-items:center;flex-wrap:wrap;
+  justify-content:space-between;padding:.5rem 1.4rem;min-height:56px;gap:.5rem 1rem;
   position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .brand{display:flex;align-items:center;gap:.6rem}
 .brand h1{font-size:.95rem;font-weight:800;letter-spacing:.04em}
@@ -31,7 +31,33 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--off);color:var
 
 /* NAV */
 .nav{background:var(--blue);display:flex;overflow-x:auto;scrollbar-width:none;
-  position:sticky;top:56px;z-index:199;border-bottom:1px solid rgba(255,255,255,.08)}
+  position:sticky;top:0;z-index:199;border-bottom:1px solid rgba(255,255,255,.08)}
+@media(min-width:769px){ .nav{ top:56px; } }
+
+/* ============================================================
+   RESPONSIVE — SIMU/TABLET: fanya "topbar" ipangike vizuri bila
+   vitufe kubebana, na iondoe vitufe visivyo vya lazima kwenye
+   skrini ndogo (vinabaki kupatikana kupitia "Zaidi ▾").
+============================================================ */
+@media(max-width:768px){
+  body{padding-top:0}
+  .topbar{position:static;padding:.6rem .8rem;}
+  .nav{position:sticky;top:0;}
+  .brand h1{font-size:.85rem;}
+  .brand span{display:none;} /* maelezo marefu ya chini ya jina - hayahitajiki simu */
+  #topdate{display:none;}
+  #kmm-more-wrap{position:relative;}
+  #kmm-more-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;
+    padding:.35rem .7rem;border-radius:6px;font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;}
+  #kmm-more-menu{display:none;position:absolute;right:0;top:110%;background:#fff;color:var(--navy);
+    border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);padding:.5rem;min-width:220px;z-index:400;}
+  #kmm-more-menu.open{display:flex;flex-direction:column;gap:.35rem;}
+  #kmm-more-menu button{width:100%;text-align:left;background:var(--alt);color:var(--navy);
+    border:none;padding:.5rem .7rem;border-radius:7px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;}
+  .kmm-desktop-only{display:none !important;}
+  .modal-box{max-width:100%;width:100%;min-height:100vh;border-radius:0;padding:1.2rem;}
+  .fgrid{grid-template-columns:1fr;}
+}
 .nav::-webkit-scrollbar{display:none}
 .nb{background:none;border:none;color:rgba(255,255,255,.7);font:inherit;
   font-size:.8rem;font-weight:600;padding:.75rem 1rem;cursor:pointer;
@@ -274,6 +300,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
 .fab-wrap{position:relative;display:flex;align-items:center}
 .fab-wrap:hover .fab-lbl{opacity:1}
 </style>
+</head>
 
 <!-- ═══ FIREBASE (Auth + Firestore) ═══ -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -417,7 +444,6 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
     }
   });
 </script>
-</head>
 <body>
 
 <!-- ═══ AUTH SCREEN (login / register) ═══ -->
@@ -479,10 +505,18 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
              font-weight:700;cursor:pointer;white-space:nowrap">
       🚪 Toka
     </button>
-    <div id="file-status" style="font-size:.75rem;padding:.25rem .5rem;background:rgba(255,255,255,.1);border-radius:6px;white-space:nowrap">
+    <div id="file-status" class="kmm-desktop-only" style="font-size:.75rem;padding:.25rem .5rem;background:rgba(255,255,255,.1);border-radius:6px;white-space:nowrap">
       <span style="color:#546E7A;font-weight:700">⚫ Inaangalia...</span>
     </div>
-    <button onclick="connectFile()" title="Unganisha na faili halisi kwenye kompyuta yako"
+    <div id="kmm-more-wrap" style="display:none;">
+      <button id="kmm-more-btn" onclick="document.getElementById('kmm-more-menu').classList.toggle('open')">⋯ Zaidi</button>
+      <div id="kmm-more-menu">
+        <button onclick="connectFile()">🔒 Unganisha Faili Salama</button>
+        <button onclick="openExistingFile()">📂 Pakia Faili</button>
+        <button onclick="manualDownload()">📥 Hifadhi Nakala</button>
+      </div>
+    </div>
+    <button class="kmm-desktop-only" onclick="connectFile()" title="Unganisha na faili halisi kwenye kompyuta yako"
       style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;
              padding:.35rem .75rem;border-radius:6px;font:inherit;font-size:.76rem;
              font-weight:700;cursor:pointer;white-space:nowrap;transition:all .18s"
@@ -490,7 +524,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       onmouseout="this.style.background='rgba(255,255,255,.15)'">
       🔒 Unganisha Faili Salama
     </button>
-    <button onclick="openExistingFile()" title="Pakia faili la data lililopo"
+    <button class="kmm-desktop-only" onclick="openExistingFile()" title="Pakia faili la data lililopo"
       style="background:rgba(249,168,37,.2);border:1.5px solid rgba(249,168,37,.5);color:#F9A825;
              padding:.35rem .75rem;border-radius:6px;font:inherit;font-size:.76rem;
              font-weight:700;cursor:pointer;white-space:nowrap"
@@ -498,7 +532,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       onmouseout="this.style.background='rgba(249,168,37,.2)'">
       📂 Pakia Faili
     </button>
-    <button onclick="manualDownload()" title="Pakua nakala ya JSON sasa hivi"
+    <button class="kmm-desktop-only" onclick="manualDownload()" title="Pakua nakala ya JSON sasa hivi"
       style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.3);color:#fff;
              padding:.35rem .75rem;border-radius:6px;font:inherit;font-size:.76rem;
              font-weight:700;cursor:pointer;white-space:nowrap"
@@ -716,40 +750,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Muuzaji (Jina la Muuzaji) *</label>
         <input type="text" id="bv-seller" placeholder="Mf. Toyota Tanzania, Bwana Juma..."></div>
       <div class="fg"><label>Mkoa wa Kununulia</label>
-        <select id="bv-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
+        <select id="bv-region"><option value="">-- Chagua Mkoa --</option></select>
       </div>
       <div class="fg"><label>Hali ya Gari</label>
         <select id="bv-condition">
@@ -792,41 +793,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Mnunuzi (Jina la Mnunuzi) *</label>
         <input type="text" id="sv-buyer" placeholder="Mf. Amina Hassan – Dar es Salaam"></div>
       <div class="fg"><label>Mkoa wa Mauzo</label>
-        <select id="sv-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="sv-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Bei ya Mauzo (TZS) *</label>
         <input type="number" id="sv-amount" placeholder="0" min="0"></div>
       <div class="fg"><label>Hali ya Gari Wakati wa Mauzo</label>
@@ -858,9 +825,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <button class="qb qb-gold"  onclick="openModal('modal-sellland')">💰 Uza Kiwanja</button>
     </div>
   </div>
-  <!-- Nyumba summary per region -->
   <div id="pregions"></div>
-  <!-- Property register -->
   <div class="card">
     <div class="ct">📋 Rejista ya Mali Isiyohamia</div>
     <div class="twrap"><table class="live-tbl" id="prop-reg-tbl">
@@ -891,40 +856,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
         </select>
       </div>
       <div class="fg"><label>Mkoa</label>
-        <select id="bp-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
+        <select id="bp-region"><option value="">-- Chagua Mkoa --</option></select>
       </div>
       <div class="fg"><label>Gharama ya Kununua/Kujenga (TZS) *</label>
         <input type="number" id="bp-cost" placeholder="0" min="0"></div>
@@ -969,41 +901,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Mnunuzi (Jina la Mnunuzi) *</label>
         <input type="text" id="sp-buyer" placeholder="Mf. Fatuma Ali – Mwanza"></div>
       <div class="fg"><label>Mkoa wa Mauzo</label>
-        <select id="sp-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="sp-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Bei ya Mauzo (TZS) *</label>
         <input type="number" id="sp-amount" placeholder="0" min="0"></div>
       <div class="fg"><label>Hali wakati wa Mauzo</label>
@@ -1034,41 +932,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Jina / Plot No. *</label>
         <input type="text" id="bl-name" placeholder="Mf. Plot 45 Dodoma"></div>
       <div class="fg"><label>Mkoa *</label>
-        <select id="bl-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="bl-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Eneo / Kata</label>
         <input type="text" id="bl-area" placeholder="Mf. Dodoma CBD, Makole..."></div>
       <div class="fg"><label>Muuzaji (Jina la Muuzaji)</label>
@@ -1116,41 +980,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Mnunuzi (Jina la Mnunuzi) *</label>
         <input type="text" id="sl-buyer" placeholder="Mf. Hamisi Bakari – Dodoma"></div>
       <div class="fg"><label>Mkoa wa Mauzo</label>
-        <select id="sl-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="sl-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Bei ya Mauzo (TZS) *</label>
         <input type="number" id="sl-amount" placeholder="0" min="0"></div>
       <div class="fg"><label>Hali ya Kiwanja wakati wa Mauzo</label>
@@ -1180,9 +1010,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <button class="qb qb-red"   onclick="openModal('modal-rmlive')">🔪 Uza / Chinja</button>
     </div>
   </div>
-  <!-- Summary cards -->
   <div class="agrid" id="lcards" style="margin-bottom:1.2rem"></div>
-  <!-- Livestock register table -->
   <div class="card">
     <div class="ct">📋 Rejista ya Mifugo – Hesabu ya Sasa</div>
     <div class="twrap"><table class="live-tbl" id="live-reg-tbl">
@@ -1193,7 +1021,6 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <tbody id="live-reg-body"></tbody>
     </table></div>
   </div>
-  <!-- History log -->
   <div class="card">
     <div class="ct">📜 Historia ya Mifugo (Ongeza / Uza / Chinja)</div>
     <div class="twrap"><table class="live-tbl">
@@ -1222,14 +1049,12 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
           <option value="Mbolea">🌿 Mbolea (Toroli)</option>
         </select>
       </div>
-      <!-- Ng'ombe/Mbuzi/Kondoo fields -->
       <div id="al-animal-fields" style="display:contents">
         <div class="fg"><label>Wakubwa</label><input type="number" id="al-wakubwa" value="0" min="0"></div>
         <div class="fg"><label>Wadogo</label><input type="number" id="al-wadogo" value="0" min="0"></div>
         <div class="fg"><label>Majike</label><input type="number" id="al-majike" value="0" min="0"></div>
         <div class="fg"><label>Madume</label><input type="number" id="al-madume" value="0" min="0"></div>
       </div>
-      <!-- Maziwa/Mbolea fields -->
       <div id="al-produce-fields" style="display:none">
         <div class="fg"><label>Kiasi (Lita / Toroli)</label>
           <input type="number" id="al-qty" value="0" min="0" placeholder="Idadi"></div>
@@ -1246,41 +1071,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Muuzaji (Jina la Muuzaji)</label>
         <input type="text" id="al-seller" placeholder="Mf. Mzee Juma Dodoma"></div>
       <div class="fg"><label>Mkoa wa Kununulia</label>
-        <select id="al-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="al-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Gharama ya Kununua (TZS)</label>
         <input type="number" id="al-cost" value="0" min="0" placeholder="0 kama kuzaliwa/zawadi">
       </div>
@@ -1330,41 +1121,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
       <div class="fg"><label>Mnunuzi (Jina la Mnunuzi)</label>
         <input type="text" id="rl-buyer" placeholder="Mf. Ahmed Salim – Mwanza"></div>
       <div class="fg"><label>Mkoa wa Mauzo</label>
-        <select id="rl-region">
-          <option value="">-- Chagua Mkoa --</option>
-          <option value="Arusha">Arusha</option>
-          <option value="Dar es Salaam">Dar es Salaam</option>
-          <option value="Dodoma">Dodoma</option>
-          <option value="Geita">Geita</option>
-          <option value="Iringa">Iringa</option>
-          <option value="Kagera">Kagera</option>
-          <option value="Katavi">Katavi</option>
-          <option value="Kigoma">Kigoma</option>
-          <option value="Kilimanjaro">Kilimanjaro</option>
-          <option value="Lindi">Lindi</option>
-          <option value="Manyara">Manyara</option>
-          <option value="Mara">Mara</option>
-          <option value="Mbeya">Mbeya</option>
-          <option value="Morogoro">Morogoro</option>
-          <option value="Mtwara">Mtwara</option>
-          <option value="Mwanza">Mwanza</option>
-          <option value="Njombe">Njombe</option>
-          <option value="Pemba Kaskazini">Pemba Kaskazini</option>
-          <option value="Pemba Kusini">Pemba Kusini</option>
-          <option value="Pwani">Pwani</option>
-          <option value="Rukwa">Rukwa</option>
-          <option value="Ruvuma">Ruvuma</option>
-          <option value="Shinyanga">Shinyanga</option>
-          <option value="Simiyu">Simiyu</option>
-          <option value="Singida">Singida</option>
-          <option value="Songwe">Songwe</option>
-          <option value="Tabora">Tabora</option>
-          <option value="Tanga">Tanga</option>
-          <option value="Unguja Kaskazini">Unguja Kaskazini</option>
-          <option value="Unguja Kusini">Unguja Kusini</option>
-          <option value="Unguja Mjini Magharibi">Unguja Mjini Magharibi</option>
-        </select>
-      </div>
+        <select id="rl-region"><option value="">-- Chagua Mkoa --</option></select></div>
       <div class="fg"><label>Mapato ya Mauzo (TZS)</label>
         <input type="number" id="rl-amount" value="0" min="0" placeholder="0 kama si mauzo">
       </div>
@@ -1405,169 +1162,6 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
 
 <script>
 // ══════════════════════════════════════════════════
-// SEEDED DATA FROM EXCEL (157 transactions)
-// ══════════════════════════════════════════════════
-const SEED_DATA=[
-{id:1,date:"2026-05-23",type:"MAPATO",cat:"SALARY FROM TMS",desc:"Salary for May 2026",amount:4290000,deduct:2859966,net:1430034,notes:"",month:5,year:2026},
-{id:2,date:"2026-05-30",type:"MAPATO",cat:"OTHER ALLOWANCE FROM TMS",desc:"Lunch for May 2026",amount:200000,deduct:0,net:200000,notes:"",month:5,year:2026},
-{id:3,date:"2026-05-30",type:"MAPATO",cat:"SALARY FROM KCL",desc:"Salary for May 2026",amount:180000,deduct:72000,net:108000,notes:"",month:5,year:2026},
-{id:4,date:"2026-05-30",type:"MAPATO",cat:"ALLOWANCE FROM KCL",desc:"Lunch and Transport",amount:170000,deduct:17000,net:153000,notes:"",month:5,year:2026},
-{id:5,date:"2026-05-30",type:"MAPATO",cat:"OTHER ALLOWANCE FROM TMS",desc:"RM Alowances",amount:1090000,deduct:0,net:1090000,notes:"",month:5,year:2026},
-{id:6,date:"2026-06-01",type:"MATUMIZI",cat:"Matumizi ya Bi Mkubwa",desc:"Comon use of 15 Days",amount:170000,deduct:0,net:170000,notes:"",month:6,year:2026},
-{id:7,date:"2026-06-01",type:"MATUMIZI",cat:"Matumizi ya Bi Mdogo",desc:"Comon use of 15 Days",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:8,date:"2026-06-01",type:"MATUMIZI",cat:"Matumizi ya Aidan (Ada na mengine)",desc:"overall na viatu",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:9,date:"2026-06-01",type:"MATUMIZI",cat:"Chakula changu",desc:"ofisini",amount:20000,deduct:0,net:20000,notes:"",month:6,year:2026},
-{id:10,date:"2026-06-01",type:"MATUMIZI",cat:"Chakula changu",desc:"Nyumbani",amount:20000,deduct:0,net:20000,notes:"",month:6,year:2026},
-{id:11,date:"2026-06-01",type:"MATUMIZI",cat:"Kodi ya Nyumba yangu",desc:"Mtwara kodi ya mwezi",amount:500000,deduct:0,net:500000,notes:"",month:6,year:2026},
-{id:12,date:"2026-06-01",type:"MATUMIZI",cat:"Matumizi ya Bi Mdogo",desc:"Nauli ya tren DOM to DSM",amount:31500,deduct:0,net:31500,notes:"",month:6,year:2026},
-{id:13,date:"2026-06-01",type:"MATUMIZI",cat:"Kodi ya Nyumba yangu",desc:"NHC Mbeya",amount:200000,deduct:0,net:200000,notes:"",month:6,year:2026},
-{id:14,date:"2026-06-02",type:"MATUMIZI",cat:"Matumizi ya Ameerah (Ada na mengine)",desc:"Matibabu vidonda vya tumbo",amount:20000,deduct:0,net:20000,notes:"",month:6,year:2026},
-{id:15,date:"2026-06-02",type:"MAPATO",cat:"OTHER INCOME",desc:"consultations fees",amount:500000,deduct:0,net:500000,notes:"SAD",month:6,year:2026},
-{id:16,date:"2026-06-02",type:"MATUMIZI",cat:"MAINT \u2013 DODOMA (DOM/56AA)",desc:"Ukarabati wa milango na vyoo",amount:250000,deduct:0,net:250000,notes:"56AA",month:6,year:2026},
-{id:17,date:"2026-06-02",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Mbao za 4x2 pisi 70 na 2x2 pisi 100",amount:770000,deduct:0,net:770000,notes:"64/A 07 na 08",month:6,year:2026},
-{id:18,date:"2026-06-02",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Vitasa viwili vya mageti",amount:50000,deduct:0,net:50000,notes:"64/A 07 na 08",month:6,year:2026},
-{id:19,date:"2026-06-02",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/02)",desc:"Pressure pump",amount:270000,deduct:0,net:270000,notes:"64/A 07 na 08",month:6,year:2026},
-{id:20,date:"2026-06-02",type:"MAPATO",cat:"OTHER INCOME",desc:"Marejesho ya Madeni TAMARA",amount:745000,deduct:0,net:745000,notes:"",month:6,year:2026},
-{id:21,date:"2026-06-02",type:"MATUMIZI",cat:"Chakula changu",desc:"Samaki",amount:50000,deduct:0,net:50000,notes:"",month:6,year:2026},
-{id:22,date:"2026-06-02",type:"MAPATO",cat:"RENT \u2013 DODOMA (DOM/56AA)",desc:"Vitasa viwili vya mageti",amount:450000,deduct:0,net:450000,notes:"MIEZI MITATU",month:6,year:2026},
-{id:23,date:"2026-06-03",type:"MAPATO",cat:"INCOME FROM HOUSE RENT (Mbeya)",desc:"JONSON",amount:330000,deduct:0,net:330000,notes:"",month:6,year:2026},
-{id:24,date:"2026-06-03",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"MBAO NA MISUMALI + MCHANGA",amount:480000,deduct:0,net:480000,notes:"MBAO NA MISUMALI + MCHANGA",month:6,year:2026},
-{id:25,date:"2026-06-03",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"MBAO NA MISUMALI + MCHANGA",amount:600000,deduct:0,net:600000,notes:"MBAO NA MISUMALI + MCHANGA",month:6,year:2026},
-{id:26,date:"2026-06-03",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"CONDUIT , BOX MAIN SWITCH",amount:220000,deduct:0,net:220000,notes:"vifaa vya umeme",month:6,year:2026},
-{id:27,date:"2026-06-03",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"MUD LABOUR CHARGE",amount:300000,deduct:0,net:300000,notes:"KUPAUA",month:6,year:2026},
-{id:28,date:"2026-06-03",type:"MAPATO",cat:"HIRE \u2013 T.678 DUW (Coaster)",desc:"Student transportation",amount:900000,deduct:0,net:900000,notes:"Ukodishaji coaster wanafunzi",month:6,year:2026},
-{id:29,date:"2026-06-04",type:"MATUMIZI",cat:"Social / Street Contribution",desc:"Mwenyekiti KABISA",amount:30000,deduct:0,net:30000,notes:"",month:6,year:2026},
-{id:30,date:"2026-06-05",type:"MAPATO",cat:"OTHER INCOME",desc:"DOA",amount:200000,deduct:0,net:200000,notes:"",month:6,year:2026},
-{id:31,date:"2026-06-05",type:"MATUMIZI",cat:"Other Expenses",desc:"ADA YA UDEREVA PETER",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:32,date:"2026-06-05",type:"MATUMIZI",cat:"Other Expenses",desc:"MUSA KATEGILE",amount:80000,deduct:0,net:80000,notes:"",month:6,year:2026},
-{id:33,date:"2026-06-05",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"PLUMBING MATERIAL",amount:150000,deduct:0,net:150000,notes:"ZARAFI MOHAMED SALUM",month:6,year:2026},
-{id:34,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"PLUMBING MATERIAL",amount:150000,deduct:0,net:150000,notes:"ZARAFI MOHAMED SALUM",month:6,year:2026},
-{id:35,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"BATI 44 NA MISUMALI KILO 10",amount:974000,deduct:0,net:974000,notes:"BATI",month:6,year:2026},
-{id:36,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"BATI 25 NA MISUMALI KILO 7",amount:585000,deduct:0,net:585000,notes:"",month:6,year:2026},
-{id:37,date:"2026-06-12",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"CEMENT 20 CHUMA ZA GATE",amount:490000,deduct:0,net:490000,notes:"",month:6,year:2026},
-{id:38,date:"2026-06-12",type:"MAPATO",cat:"OTHER INCOME",desc:"MHAKIKIMALI",amount:500000,deduct:0,net:500000,notes:"",month:6,year:2026},
-{id:39,date:"2026-06-12",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"GATE FOR MTR/64A",amount:1200000,deduct:0,net:1200000,notes:"",month:6,year:2026},
-{id:40,date:"2026-06-12",type:"MAPATO",cat:"OTHER INCOME",desc:"BUSINESS",amount:2982000,deduct:0,net:2982000,notes:"",month:6,year:2026},
-{id:41,date:"2026-06-12",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"MCHANGA",amount:265000,deduct:0,net:265000,notes:"",month:6,year:2026},
-{id:42,date:"2026-06-13",type:"MAPATO",cat:"OTHER INCOME",desc:"BUSINESS",amount:520000,deduct:0,net:520000,notes:"",month:6,year:2026},
-{id:43,date:"2026-06-13",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"MILANGO",amount:600000,deduct:0,net:600000,notes:"SELEMAN",month:6,year:2026},
-{id:44,date:"2026-06-13",type:"MATUMIZI",cat:"MIFUGO \u2013 Matumizi Kondoo",desc:"UNUNUZI KONDOO 2",amount:135000,deduct:0,net:135000,notes:"MAYAULA",month:6,year:2026},
-{id:45,date:"2026-06-13",type:"MAPATO",cat:"OTHER INCOME",desc:"SADA",amount:300000,deduct:0,net:300000,notes:"",month:6,year:2026},
-{id:46,date:"2026-06-13",type:"MATUMIZI",cat:"Other Expenses",desc:"WEEKEND HQ",amount:300000,deduct:0,net:300000,notes:"",month:6,year:2026},
-{id:47,date:"2026-06-13",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"KOKOTO",amount:350000,deduct:0,net:350000,notes:"",month:6,year:2026},
-{id:48,date:"2026-06-13",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Zarafi plumbing",amount:75000,deduct:0,net:75000,notes:"ZARAFI MOHAMED SALUM",month:6,year:2026},
-{id:49,date:"2026-06-06",type:"MATUMIZI",cat:"Matumizi ya Bi Mkubwa",desc:"Matibabu",amount:130000,deduct:0,net:130000,notes:"",month:6,year:2026},
-{id:50,date:"2026-06-03",type:"MATUMIZI",cat:"REPAIR \u2013 T.678 DUW (Coaster)",desc:"Dereva",amount:180000,deduct:0,net:180000,notes:"",month:6,year:2026},
-{id:51,date:"2026-06-13",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Zarafi plumbing",amount:75000,deduct:0,net:75000,notes:"ZARAFI MOHAMED SALUM",month:6,year:2026},
-{id:52,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"30PCS MBAO 4X2 NA MISUMALI 1OKG",amount:235000,deduct:0,net:235000,notes:"",month:6,year:2026},
-{id:53,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"40PCS MBAO 4X2 NA MISUMALI 3OKG",amount:360000,deduct:0,net:360000,notes:"",month:6,year:2026},
-{id:54,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"40PCS MBAO 2X2",amount:132000,deduct:0,net:132000,notes:"",month:6,year:2026},
-{id:55,date:"2026-06-06",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"60PCS MBAO 2X2",amount:198000,deduct:0,net:198000,notes:"",month:6,year:2026},
-{id:56,date:"2026-06-12",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"30PCS MBAO 2X2 FOR BLANDERING",amount:99000,deduct:0,net:99000,notes:"",month:6,year:2026},
-{id:57,date:"2026-06-12",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"60PCS MBAO 2X2 FOR BLANDERING",amount:198000,deduct:0,net:198000,notes:"",month:6,year:2026},
-{id:58,date:"2026-06-13",type:"MATUMIZI",cat:"Matumizi ya Aidan (Ada na mengine)",desc:"GODORO",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:59,date:"2026-06-13",type:"MATUMIZI",cat:"Matumizi ya Ameerah (Ada na mengine)",desc:"GODORO",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:60,date:"2026-06-13",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"CEMENT 20",amount:360000,deduct:0,net:360000,notes:"",month:6,year:2026},
-{id:61,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Tiles box 20",amount:730000,deduct:0,net:730000,notes:"",month:6,year:2026},
-{id:62,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Tiles box 32",amount:1156000,deduct:0,net:1156000,notes:"",month:6,year:2026},
-{id:63,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Gypsum board 5",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:64,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Gypsum board 18",amount:360000,deduct:0,net:360000,notes:"",month:6,year:2026},
-{id:65,date:"2026-06-15",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"cement 20",amount:360000,deduct:0,net:360000,notes:"",month:6,year:2026},
-{id:66,date:"2026-06-15",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Kokoto + UMEME",amount:600000,deduct:0,net:600000,notes:"",month:6,year:2026},
-{id:67,date:"2026-06-14",type:"MATUMIZI",cat:"Social / Street Contribution",desc:"ALLY",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:68,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Wall put 4",amount:80000,deduct:0,net:80000,notes:"",month:6,year:2026},
-{id:69,date:"2026-06-15",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Wall put 6",amount:120000,deduct:0,net:120000,notes:"",month:6,year:2026},
-{id:70,date:"2026-06-17",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"cement 50,skimer Accessories",amount:1073000,deduct:0,net:1073000,notes:"",month:6,year:2026},
-{id:71,date:"2026-06-19",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"skimer, Andika, mikanda",amount:427000,deduct:0,net:427000,notes:"",month:6,year:2026},
-{id:72,date:"2026-06-19",type:"MAPATO",cat:"OTHER INCOME",desc:"k",amount:700000,deduct:0,net:700000,notes:"",month:6,year:2026},
-{id:73,date:"2026-06-20",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Wall put 11. pvc 10, misumali",amount:323000,deduct:0,net:323000,notes:"",month:6,year:2026},
-{id:74,date:"2026-06-20",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Kokoto za Floor",amount:350000,deduct:0,net:350000,notes:"",month:6,year:2026},
-{id:75,date:"2026-06-20",type:"MATUMIZI",cat:"Other Expenses",desc:"TRA Income tax",amount:50000,deduct:0,net:50000,notes:"",month:6,year:2026},
-{id:76,date:"2026-06-16",type:"MATUMIZI",cat:"Matumizi ya Bi Mkubwa",desc:"Matumizi",amount:155000,deduct:0,net:155000,notes:"",month:6,year:2026},
-{id:77,date:"2026-06-16",type:"MAPATO",cat:"HIRE \u2013 T.678 DUW (Coaster)",desc:"Harusi",amount:200000,deduct:0,net:200000,notes:"",month:6,year:2026},
-{id:78,date:"2026-06-19",type:"MATUMIZI",cat:"Matumizi ya Bi Mdogo",desc:"Matumizi",amount:40000,deduct:0,net:40000,notes:"",month:6,year:2026},
-{id:79,date:"2026-06-19",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"MUD Labour chaji blandering",amount:180000,deduct:0,net:180000,notes:"",month:6,year:2026},
-{id:80,date:"2026-06-19",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Kupiga Rangi (350,000)",amount:50000,deduct:0,net:50000,notes:"",month:6,year:2026},
-{id:81,date:"2026-06-20",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Kumwaga zege 650,000",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:82,date:"2026-06-19",type:"MAPATO",cat:"OTHER INCOME",desc:"Loan from KCL",amount:295000,deduct:0,net:295000,notes:"",month:6,year:2026},
-{id:83,date:"2026-06-20",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"Mkopo kutoka KCL",amount:1250000,deduct:0,net:1250000,notes:"",month:6,year:2026},
-{id:84,date:"2026-06-20",type:"MAPATO",cat:"OTHER ALLOWANCE FROM TMS",desc:"RM Alowances",amount:1090000,deduct:0,net:1090000,notes:"",month:6,year:2026},
-{id:85,date:"2026-06-20",type:"MAPATO",cat:"PER DIEM TMS",desc:"Safari ya kufuata vitendea kazi DAR",amount:858000,deduct:0,net:858000,notes:"",month:6,year:2026},
-{id:86,date:"2026-06-21",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"3boady",amount:60000,deduct:0,net:60000,notes:"",month:6,year:2026},
-{id:87,date:"2026-06-21",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"10 cement + 20 pvc mikanda+ rangi+Rat",amount:370000,deduct:0,net:370000,notes:"",month:6,year:2026},
-{id:88,date:"2026-06-21",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Rangi nje ndani + bitumen",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:89,date:"2026-06-21",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Fundi tiles labour",amount:120000,deduct:0,net:120000,notes:"",month:6,year:2026},
-{id:90,date:"2026-06-21",type:"MAPATO",cat:"OTHER INCOME",desc:"Capatain Mo",amount:440000,deduct:0,net:440000,notes:"",month:6,year:2026},
-{id:91,date:"2026-06-21",type:"MAPATO",cat:"HIRE \u2013 T.678 DUW (Coaster)",desc:"harus",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:92,date:"2026-06-21",type:"MAPATO",cat:"HIRE \u2013 T.225 DNQ (Coaster)",desc:"harus",amount:60000,deduct:0,net:60000,notes:"",month:6,year:2026},
-{id:93,date:"2026-06-21",type:"MAPATO",cat:"HIRE \u2013 T.728 EDK (Range Rover)",desc:"harus",amount:550000,deduct:0,net:550000,notes:"",month:6,year:2026},
-{id:94,date:"2026-06-21",type:"MATUMIZI",cat:"Other Expenses",desc:"T 225 DNQ BIMA",amount:517000,deduct:0,net:517000,notes:"",month:6,year:2026},
-{id:95,date:"2026-06-21",type:"MATUMIZI",cat:"Other Expenses",desc:"T 225 DNQ LATRA",amount:370000,deduct:0,net:370000,notes:"",month:6,year:2026},
-{id:96,date:"2026-06-22",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Mchanga wa tiles",amount:130000,deduct:0,net:130000,notes:"",month:6,year:2026},
-{id:97,date:"2026-06-23",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Rangi ya nje getini",amount:368000,deduct:0,net:368000,notes:"",month:6,year:2026},
-{id:98,date:"2026-06-23",type:"MAPATO",cat:"SALARY FROM TMS",desc:"Salary for Jun 2026",amount:4290000,deduct:2859966,net:1430034,notes:"",month:6,year:2026},
-{id:99,date:"2026-06-23",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"down",amount:2279000,deduct:0,net:2279000,notes:"",month:6,year:2026},
-{id:100,date:"2026-06-23",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"FLORA MKOPO",amount:500000,deduct:0,net:500000,notes:"",month:6,year:2026},
-{id:101,date:"2026-06-23",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Labour charge for floor",amount:500000,deduct:0,net:500000,notes:"",month:6,year:2026},
-{id:102,date:"2026-06-24",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"Mkopo kutoka TAMARA Microfinancy",amount:2000000,deduct:0,net:2000000,notes:"",month:6,year:2026},
-{id:103,date:"2026-06-25",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"taa, vitasa, meter za maji",amount:370000,deduct:0,net:370000,notes:"",month:6,year:2026},
-{id:104,date:"2026-06-26",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"Bomba la kupokelea umeme",amount:40000,deduct:0,net:40000,notes:"",month:6,year:2026},
-{id:105,date:"2026-06-26",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"Bomba la kupokelea umeme",amount:40000,deduct:0,net:40000,notes:"",month:6,year:2026},
-{id:106,date:"2026-06-26",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Getini mikanda na mbao",amount:100000,deduct:0,net:100000,notes:"",month:6,year:2026},
-{id:107,date:"2026-06-26",type:"MAPATO",cat:"OTHER INCOME",desc:"Saada",amount:1000000,deduct:0,net:1000000,notes:"",month:6,year:2026},
-{id:108,date:"2026-06-26",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"FLORA MKOPO",amount:120000,deduct:0,net:120000,notes:"",month:6,year:2026},
-{id:109,date:"2026-06-26",type:"MAPATO",cat:"INCOME FROM FARM (DOM)",desc:"Mauzo ya mihogo",amount:1000000,deduct:0,net:1000000,notes:"",month:6,year:2026},
-{id:110,date:"2026-06-26",type:"MAPATO",cat:"HIRE \u2013 T.728 EDK (Range Rover)",desc:"Sendoff",amount:350000,deduct:0,net:350000,notes:"",month:6,year:2026},
-{id:111,date:"2026-06-26",type:"MATUMIZI",cat:"REPAIR \u2013 T.728 EDK (Range Rover)",desc:"Driver and fuel",amount:80000,deduct:0,net:80000,notes:"",month:6,year:2026},
-{id:112,date:"2026-06-26",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"W/C and Shower complete",amount:350000,deduct:0,net:350000,notes:"",month:6,year:2026},
-{id:113,date:"2026-06-26",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"W/C and Shower complete",amount:350000,deduct:0,net:350000,notes:"",month:6,year:2026},
-{id:114,date:"2026-06-27",type:"MATUMIZI",cat:"RENT \u2013 MTWARA (MTR/64A/08)",desc:"alluminium window and toilet door",amount:1000000,deduct:0,net:1000000,notes:"",month:6,year:2026},
-{id:115,date:"2026-06-27",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"alluminium window and toilet door",amount:500000,deduct:0,net:500000,notes:"",month:6,year:2026},
-{id:116,date:"2026-06-27",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"PLUMBING MATERIAL",amount:200000,deduct:0,net:200000,notes:"",month:6,year:2026},
-{id:117,date:"2026-06-27",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"RANGI and kitchen table",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:118,date:"2026-06-27",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/08)",desc:"RANGI and kitchen table",amount:150000,deduct:0,net:150000,notes:"",month:6,year:2026},
-{id:119,date:"2026-06-28",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"Dory lupaway",amount:600000,deduct:0,net:600000,notes:"",month:6,year:2026},
-{id:120,date:"2026-07-01",type:"MAPATO",cat:"RENT \u2013 MTWARA (MTR/64A/07)",desc:"Kodi ya miezi 4",amount:600000,deduct:0,net:600000,notes:"",month:7,year:2026},
-{id:121,date:"2026-07-01",type:"MAPATO",cat:"RENT \u2013 MTWARA (MTR/64A/08)",desc:"Kodi ya miezi 3",amount:900000,deduct:0,net:900000,notes:"",month:7,year:2026},
-{id:122,date:"2026-07-02",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/07)",desc:"MLANGO",amount:320000,deduct:0,net:320000,notes:"",month:7,year:2026},
-{id:123,date:"2026-07-02",type:"MAPATO",cat:"PER DIEM TMS",desc:"Retreat",amount:390000,deduct:0,net:390000,notes:"",month:7,year:2026},
-{id:124,date:"2026-07-02",type:"MAPATO",cat:"OTHER ALLOWANCE FROM TMS",desc:"miaka 20",amount:100000,deduct:0,net:100000,notes:"",month:7,year:2026},
-{id:125,date:"2026-07-02",type:"MATUMIZI",cat:"Matumizi ya Abdul (Ada na mengine)",desc:"DOM",amount:650000,deduct:0,net:650000,notes:"",month:7,year:2026},
-{id:126,date:"2026-07-02",type:"MATUMIZI",cat:"Matumizi ya Far (Ada na mengine)",desc:"DOM",amount:650000,deduct:0,net:650000,notes:"",month:7,year:2026},
-{id:127,date:"2026-07-02",type:"MATUMIZI",cat:"Bill ya Maji",desc:"MTUWASA",amount:141707,deduct:0,net:141707,notes:"",month:7,year:2026},
-{id:128,date:"2026-07-02",type:"MATUMIZI",cat:"Matumizi ya Bi Mkubwa",desc:"Matumizi",amount:200000,deduct:0,net:200000,notes:"",month:7,year:2026},
-{id:129,date:"2026-07-02",type:"MAPATO",cat:"OTHER INCOME",desc:"dar",amount:235000,deduct:0,net:235000,notes:"",month:7,year:2026},
-{id:130,date:"2026-07-06",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Board na FiRE Extinguisher",amount:310000,deduct:0,net:310000,notes:"",month:7,year:2026},
-{id:131,date:"2026-07-06",type:"MAPATO",cat:"RENT \u2013 DODOMA (DOM/72V/01)",desc:"miezi  3 Rweyemamu",amount:600000,deduct:0,net:600000,notes:"",month:7,year:2026},
-{id:132,date:"2026-06-30",type:"MAPATO",cat:"SALARY FROM KCL",desc:"june",amount:180000,deduct:72000,net:108000,notes:"",month:6,year:2026},
-{id:133,date:"2026-06-30",type:"MAPATO",cat:"ALLOWANCE FROM KCL",desc:"Lunch and Transport",amount:170000,deduct:17000,net:153000,notes:"",month:6,year:2026},
-{id:134,date:"2026-07-01",type:"MAPATO",cat:"BUSINESS LOAN RECEIVED",desc:"mkopo wa pesa kwa ajili ya biashara ya korosho",amount:30000000,deduct:0,net:30000000,notes:"",month:7,year:2026},
-{id:135,date:"2026-07-20",type:"MATUMIZI",cat:"Other Expenses",desc:"korosho",amount:20000000,deduct:0,net:20000000,notes:"",month:7,year:2026},
-{id:136,date:"2026-07-20",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Fance ya nyuma",amount:2500000,deduct:0,net:2500000,notes:"",month:7,year:2026},
-{id:137,date:"2026-07-20",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"ku process hati ya viwanja",amount:2000000,deduct:0,net:2000000,notes:"",month:7,year:2026},
-{id:138,date:"2026-07-21",type:"MATUMIZI",cat:"Kodi ya Nyumba yangu",desc:"Mzee Moyo kodi ya miezi 6",amount:2250000,deduct:0,net:2250000,notes:"",month:7,year:2026},
-{id:139,date:"2026-07-22",type:"MATUMIZI",cat:"Kodi ya Nyumba yangu",desc:"dalali",amount:380000,deduct:0,net:380000,notes:"",month:7,year:2026},
-{id:140,date:"2026-07-23",type:"MATUMIZI",cat:"MAINT \u2013 MTWARA (MTR/64A/05)",desc:"Furnitures Makabati jikoni na viti vya meza",amount:500000,deduct:0,net:500000,notes:"",month:7,year:2026},
-{id:141,date:"2026-07-24",type:"MATUMIZI",cat:"Purchasing Household Items",desc:"SAMSUNG TV 50\", AIWA SABUFA na Microwave",amount:1500000,deduct:0,net:1500000,notes:"",month:7,year:2026},
-{id:142,date:"2026-07-25",type:"MATUMIZI",cat:"Transport Expenses",desc:"Gari kutoka mtwara hadi zanzibar",amount:1000000,deduct:0,net:1000000,notes:"",month:7,year:2026},
-{id:143,date:"2026-07-25",type:"MATUMIZI",cat:"Lodging Expenses",desc:"MWANZA",amount:100000,deduct:0,net:100000,notes:"",month:7,year:2026},
-{id:144,date:"2026-07-25",type:"MATUMIZI",cat:"Clothing & Accessories",desc:"MASHUKA, PAZIA NA DUMU ZA MAJI",amount:350000,deduct:0,net:350000,notes:"",month:7,year:2026},
-{id:145,date:"2026-07-26",type:"MATUMIZI",cat:"Umeme wa Nyumba yangu",desc:"MWANZA",amount:30000,deduct:0,net:30000,notes:"",month:7,year:2026},
-{id:146,date:"2026-07-26",type:"MATUMIZI",cat:"Chakula changu",desc:"jana na leo",amount:50000,deduct:0,net:50000,notes:"",month:7,year:2026},
-{id:147,date:"2026-07-26",type:"MATUMIZI",cat:"Social / Street Contribution",desc:"mzee LISASI",amount:100000,deduct:0,net:100000,notes:"",month:7,year:2026},
-{id:148,date:"2026-07-26",type:"MATUMIZI",cat:"Purchasing Household Items",desc:"Furnitures (Mwanza)",amount:3000000,deduct:0,net:3000000,notes:"",month:7,year:2026},
-{id:149,date:"2026-07-26",type:"MAPATO",cat:"SALARY FROM TMS",desc:"Salary for July 2026",amount:4290000,deduct:2859966,net:1430034,notes:"",month:7,year:2026},
-{id:150,date:"2026-07-23",type:"MAPATO",cat:"OTHER INCOME",desc:"ceman",amount:1000000,deduct:0,net:1000000,notes:"",month:7,year:2026},
-{id:151,date:"2026-07-18",type:"MAPATO",cat:"OTHER INCOME",desc:"sheikh D",amount:1500000,deduct:0,net:1500000,notes:"",month:7,year:2026},
-{id:152,date:"2026-07-18",type:"MATUMIZI",cat:"Matumizi ya A'shadieeyah (Ada na mengine)",desc:"MAJORITY PR/SCHOOL ADA",amount:600000,deduct:0,net:600000,notes:"",month:7,year:2026},
-{id:153,date:"2026-07-18",type:"MATUMIZI",cat:"Matumizi ya Aidan (Ada na mengine)",desc:"WAYA ZA MENO",amount:350000,deduct:0,net:350000,notes:"",month:7,year:2026},
-{id:154,date:"2026-07-18",type:"MATUMIZI",cat:"Matumizi ya Ameerah (Ada na mengine)",desc:"MIWANI",amount:150000,deduct:0,net:150000,notes:"",month:7,year:2026},
-{id:155,date:"2026-07-24",type:"MATUMIZI",cat:"Azam Subscription",desc:"AZAMDecoder with subscriptions",amount:67000,deduct:0,net:67000,notes:"",month:7,year:2026},
-{id:156,date:"2026-07-11",type:"MATUMIZI",cat:"Matumizi ya Shamba",desc:"mifuko ya kuvunia",amount:40000,deduct:0,net:40000,notes:"",month:7,year:2026},
-{id:157,date:"2026-07-06",type:"MATUMIZI",cat:"House Construction and Maintenance",desc:"Fire extinguisher 3",amount:250000,deduct:0,net:250000,notes:"",month:7,year:2026}
-];
-
-// ══════════════════════════════════════════════════
 // CATEGORIES
 // ══════════════════════════════════════════════════
 const INC=[
@@ -1585,7 +1179,6 @@ const INC=[
   "HIRE – T.616 DDA (Alphard)","HIRE – T.394 AVE (Pickup)",
   "BUSINESS LOAN RECEIVED","INVESTMENT RETURNS / DIVIDENDS",
   "GIFTS & CONTRIBUTIONS RECEIVED","OTHER INCOME",
-  // legacy names from old Excel entries
   "INCOME FROM HOUSE RENT (Dom)","INCOME FROM HOUSE RENT (Mbeya)","INCOME FROM HOUSE RENT (Mtwara)"
 ];
 const EXP=[
@@ -1612,7 +1205,7 @@ const EXP=[
   "Condolences","Social / Street Contribution","Transport Expenses","Lodging Expenses",
   "Medical / Health Expenses","Clothing & Accessories","Savings / Investment Deposit",
   "Loan Repayment","Emergency / Miscellaneous","Other Expenses",
-  "RENT – MTWARA (MTR/64A/08)","RENT – MTWARA (MTR/64A/07)"  // misclassified in excel
+  "RENT – MTWARA (MTR/64A/08)","RENT – MTWARA (MTR/64A/07)"
 ];
 const VEHS=[
   {p:"T.678 DUW",m:"Coaster"},{p:"T.225 DNQ",m:"Coaster"},
@@ -1629,21 +1222,32 @@ const MSW=["Januari","Februari","Machi","Aprili","Mei","Juni",
            "Julai","Agosti","Septemba","Oktoba","Novemba","Desemba"];
 const MSH=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ago","Sep","Okt","Nov","Des"];
 const LOAN=1504726;
+const TZ_REGIONS=["Arusha","Dar es Salaam","Dodoma","Geita","Iringa","Kagera","Katavi","Kigoma",
+  "Kilimanjaro","Lindi","Manyara","Mara","Mbeya","Morogoro","Mtwara","Mwanza","Njombe",
+  "Pemba Kaskazini","Pemba Kusini","Pwani","Rukwa","Ruvuma","Shinyanga","Simiyu","Singida",
+  "Songwe","Tabora","Tanga","Unguja Kaskazini","Unguja Kusini","Unguja Mjini Magharibi"];
+function populateRegionSelects(){
+  const ids=["bv-region","sv-region","bp-region","sp-region","bl-region","sl-region","al-region","rl-region"];
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    TZ_REGIONS.forEach(r=>{ const o=document.createElement("option"); o.value=o.textContent=r; el.appendChild(o); });
+  });
+}
 
 let TXN=[];
 
 // ════════════════════════════════════════════════════════════
-// STORAGE ENGINE  v2 – File System Access API + IndexedDB + Auto-download
+// STORAGE ENGINE
 // ════════════════════════════════════════════════════════════
 const KEY      = "kmm_v3";
 const IDB_NAME = "kmm_idb";
 const IDB_STORE= "txns";
-const AUTO_DL_EVERY = 5;   // auto-download every N saves when no file linked
-let   fileHandle   = null; // File System Access handle
+const AUTO_DL_EVERY = 5;
+let   fileHandle   = null;
 let   saveCount    = 0;
 let   fsSupported  = ("showSaveFilePicker" in window);
 
-// ── IndexedDB helpers ─────────────────────────────────────
 function idbOpen(){
   return new Promise((res,rej)=>{
     const r=indexedDB.open(IDB_NAME,1);
@@ -1671,36 +1275,25 @@ async function idbGet(){
     });
   }catch{return null;}
 }
-
-// ── File System Access (write to real file) ───────────────
 async function connectFile(){
-  if(!fsSupported){
-    toast("⚠️ Kivinjari chako hakisaidii File System API. Tumia Chrome au Edge mpya.","err");
-    return;
-  }
+  if(!fsSupported){toast("⚠️ Kivinjari chako hakisaidii File System API. Tumia Chrome au Edge mpya.","err");return;}
   try{
     fileHandle=await window.showSaveFilePicker({
       suggestedName:"kiseja_money_manager_data.json",
       types:[{description:"KMM Data File",accept:{"application/json":[".json"]}}],
       startIn:"desktop"
     });
-    await writeToFile(TXN);  // write current data immediately
+    await writeToFile(TXN);
     updateStatus();
     toast("✅ Faili Salama Limeunganishwa! Data yote imeandikwa.","ok");
-  }catch(e){
-    if(e.name!=="AbortError") toast("❌ Hitilafu ya kuunganisha faili: "+e.message,"err");
-  }
+  }catch(e){ if(e.name!=="AbortError") toast("❌ Hitilafu ya kuunganisha faili: "+e.message,"err"); }
 }
-
 async function writeToFile(data){
   if(!fileHandle) return false;
   try{
     const writable=await fileHandle.createWritable();
-    await writable.write(JSON.stringify({
-      version:2, exported: new Date().toISOString(),
-      app:"KISEJA MONEY MANAGER (KMM)",
-      count:data.length, transactions:data
-    },null,2));
+    await writable.write(JSON.stringify({version:2, exported: new Date().toISOString(),
+      app:"KISEJA MONEY MANAGER (KMM)", count:data.length, transactions:data},null,2));
     await writable.close();
     return true;
   }catch(e){
@@ -1710,43 +1303,29 @@ async function writeToFile(data){
     return false;
   }
 }
-
 async function openExistingFile(){
   if(!fsSupported){toast("⚠️ Kivinjari chako hakisaidii File System API.","err");return;}
   try{
-    const [fh]=await window.showOpenFilePicker({
-      types:[{description:"KMM Data File",accept:{"application/json":[".json"]}}]
-    });
+    const [fh]=await window.showOpenFilePicker({types:[{description:"KMM Data File",accept:{"application/json":[".json"]}}]});
     const file=await fh.getFile();
     const text=await file.text();
     const parsed=JSON.parse(text);
     const rows=parsed.transactions||parsed;
     if(!Array.isArray(rows)||!rows.length){toast("❌ Faili halijakuwa na data sahihi.","err");return;}
-    // request write permission so we can save back to same file
     const perm=await fh.requestPermission({mode:"readwrite"});
     if(perm==="granted"){
       fileHandle=fh;
       TXN=rows.map((r,i)=>({...r, id:r.id||Date.now()+i,
-        month:r.month||new Date(r.date).getMonth()+1,
-        year:r.year||new Date(r.date).getFullYear()}));
+        month:r.month||new Date(r.date).getMonth()+1, year:r.year||new Date(r.date).getFullYear()}));
       ls(); updateStatus();
       toast(`✅ Faili imepakiwa: miamala ${TXN.length}.`,"ok");
       rDash(); rToday(); rTxns();
-    } else {
-      toast("⚠️ Ruhusa ya kuandika ilikataliwa. Jaribu tena.","err");
-    }
-  }catch(e){
-    if(e.name!=="AbortError") toast("❌ Hitilafu: "+e.message,"err");
-  }
+    } else { toast("⚠️ Ruhusa ya kuandika ilikataliwa. Jaribu tena.","err"); }
+  }catch(e){ if(e.name!=="AbortError") toast("❌ Hitilafu: "+e.message,"err"); }
 }
-
-// ── Auto-download fallback ────────────────────────────────
 function autoDownload(){
-  const blob=new Blob([JSON.stringify({
-    version:2, exported:new Date().toISOString(),
-    app:"KISEJA MONEY MANAGER (KMM)",
-    count:TXN.length, transactions:TXN
-  },null,2)],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({version:2, exported:new Date().toISOString(),
+    app:"KISEJA MONEY MANAGER (KMM)", count:TXN.length, transactions:TXN},null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   const d=new Date().toISOString().slice(0,10);
@@ -1754,13 +1333,7 @@ function autoDownload(){
   a.click(); URL.revokeObjectURL(a.href);
   toast("📥 Nakala imepakuliwa: kmm_backup_"+d+".json");
 }
-
-// ── Manual download ───────────────────────────────────────
-function manualDownload(){
-  autoDownload();
-}
-
-// ── Status indicator ──────────────────────────────────────
+function manualDownload(){ autoDownload(); }
 function updateStatus(){
   const el=document.getElementById("file-status");
   if(!el) return;
@@ -1772,36 +1345,16 @@ function updateStatus(){
       <span style="color:#546E7A;font-size:.75rem;margin-left:.5rem">(Inahifadhi kwenye kivinjari + auto-backup)</span>`;
   }
 }
-
-// ── Main save function ────────────────────────────────────
 async function ls(){
-  // 1. localStorage (fast local cache)
   try{ localStorage.setItem(KEY,JSON.stringify(TXN)); }catch(e){}
-  // 2. IndexedDB (backup)
   await idbSet(TXN);
-  // 3. Real file (if connected) / auto-download fallback
   if(fileHandle){ await writeToFile(TXN); }
-  else{
-    saveCount++;
-    if(saveCount%AUTO_DL_EVERY===0){ autoDownload(); }
-  }
-  // 4. Cloud (Firestore) - private per-account storage
+  else{ saveCount++; if(saveCount%AUTO_DL_EVERY===0){ autoDownload(); } }
   saveAllToCloud();
 }
-
-// ── Load function: cloud (Firestore) is the source of truth ──
-async function load(){
-  await loadFromCloud();
-  updateStatus();
-}
-
-// ── Restore from JSON file (recovery) ────────────────────
-function showRecovery(){
-  document.getElementById("recovery-modal").style.display="flex";
-}
-function hideRecovery(){
-  document.getElementById("recovery-modal").style.display="none";
-}
+async function load(){ await loadFromCloud(); updateStatus(); }
+function showRecovery(){ document.getElementById("recovery-modal").style.display="flex"; }
+function hideRecovery(){ document.getElementById("recovery-modal").style.display="none"; }
 function recoveryUpload(input){
   const file=input.files[0];
   if(!file)return;
@@ -1812,15 +1365,13 @@ function recoveryUpload(input){
       const rows=parsed.transactions||parsed;
       if(!Array.isArray(rows)||!rows.length){alert("❌ Faili halijakuwa na data sahihi.");return;}
       TXN=rows.map((r,i)=>({...r,id:r.id||Date.now()+i,
-        month:r.month||new Date(r.date).getMonth()+1,
-        year:r.year||new Date(r.date).getFullYear()}));
+        month:r.month||new Date(r.date).getMonth()+1, year:r.year||new Date(r.date).getFullYear()}));
       ls(); hideRecovery(); rDash(); rToday(); rTxns();
       toast(`✅ Imerejeshwa: miamala ${TXN.length}.`,"ok");
     }catch(ex){alert("❌ Hitilafu ya kusoma faili: "+ex.message);}
   };
   rd.readAsText(file);
 }
-
 
 // ══════════════════════════════════════════════════
 // UTILS
@@ -1836,7 +1387,6 @@ const mo=d=>new Date(d).getMonth()+1;
 const yr=d=>new Date(d).getFullYear();
 const wk=d=>{const dt=new Date(d),s=new Date(dt.getFullYear(),0,1);
   return Math.ceil(((dt-s)/86400000+s.getDay()+1)/7);};
-
 function deduct(cat,gross){
   gross=parseFloat(gross)||0;
   if(cat==="SALARY FROM TMS"){
@@ -1867,13 +1417,14 @@ function deduct(cat,gross){
 // NAV
 // ══════════════════════════════════════════════════
 const pages={dash:rDash,entry:rToday,txns:rTxns,monthly:rMonthly,annual:rAnnual,
-             vehicles:rVeh,props:rProps,livestock:rLive,salary:rSal,advisory:rAdv};
+             vehicles:rVeh,props:rProps,livestock:rLive,salary:rSal,advisory:rAdv,social:rSocial};
 function go(id,btn){
   document.querySelectorAll(".pg").forEach(p=>p.classList.remove("on"));
   document.querySelectorAll(".nb").forEach(b=>b.classList.remove("on"));
   document.getElementById("pg-"+id).classList.add("on");
   if(btn)btn.classList.add("on");
   if(pages[id])pages[id]();
+  const mm=document.getElementById('kmm-more-menu'); if(mm) mm.classList.remove('open');
 }
 
 // ══════════════════════════════════════════════════
@@ -1902,7 +1453,6 @@ function onAmt(){
   } else hideBan();
 }
 function hideBan(){document.getElementById("dban").classList.remove("on");}
-
 function save(){
   const date=document.getElementById("f-date").value;
   const type=document.getElementById("f-type").value;
@@ -2001,17 +1551,12 @@ function clrFil(){
 function rDash(){
   const y=new Date().getFullYear();
   document.getElementById("d-yr").textContent=y;
-
-  // CASH BALANCE = ALL income ever minus ALL expenditure ever
   const allInc=TXN.filter(t=>t.type==="MAPATO").reduce((s,t)=>s+t.net,0);
   const allExp=TXN.filter(t=>t.type==="MATUMIZI").reduce((s,t)=>s+t.net,0);
   const cashBal=allInc-allExp;
-
   const nb=document.getElementById("d-net-big");
   nb.textContent=fmt(cashBal);
   nb.style.color=cashBal>=0?"var(--gold)":"#FF8A65";
-
-  // Cash status bar
   const csb=document.getElementById("cash-status-bar");
   if(csb){
     csb.style.background=cashBal>=0?"var(--teal-lt)":"var(--red-lt)";
@@ -2020,25 +1565,20 @@ function rDash(){
       <div style="font-size:.82rem;font-weight:700;color:${cashBal>=0?"var(--teal)":"var(--red)"}">
         ${cashBal>=0?"✅ Una fedha za kutosha":"⚠️ Matumizi yanazidi Mapato!"}
       </div>
-      <div style="display:flex;gap:1.2rem;font-size:.8rem">
+      <div style="display:flex;gap:1.2rem;font-size:.8rem;flex-wrap:wrap">
         <span>📥 Mapato Yote: <strong style="color:var(--teal)">${fmt(allInc)}</strong></span>
         <span>📤 Matumizi Yote: <strong style="color:var(--red)">${fmt(allExp)}</strong></span>
         <span>💰 Salio: <strong style="color:${cashBal>=0?"var(--teal)":"var(--red)"}">${fmt(cashBal)}</strong></span>
       </div>`;
   }
-
-  // Year stats
   const yt=TXN.filter(t=>t.year===y);
   const inc=yt.filter(t=>t.type==="MAPATO").reduce((s,t)=>s+t.net,0);
   const exp=yt.filter(t=>t.type==="MATUMIZI").reduce((s,t)=>s+t.net,0);
   const net=inc-exp,sav=inc*.2;
-
-  // Livestock total value
   const liveVal=Object.entries(LIVESTOCK).reduce((sum,[type,L])=>{
     if(type==="Maziwa"||type==="Mbolea") return sum;
     return sum+(L.wakubwa+L.wadogo)*(L.unitPrice||0);
   },0);
-
   document.getElementById("d-kpis").innerHTML=`
     <div class="kpi ki"><div class="kl">Mapato (${y})</div>
       <div class="kv">${fmtS(inc)}</div><div class="ks2">${fmt(inc)}</div></div>
@@ -2050,8 +1590,6 @@ function rDash(){
     <div class="kpi ks"><div class="kl">Akiba (20%) | Thamani Mifugo</div>
       <div class="kv">${fmtS(sav)}</div>
       <div class="ks2">🐄 Mifugo: ${fmt(liveVal)}</div></div>`;
-
-  // monthly bars
   const mx=Math.max(...MSW.map((_,i)=>{
     const mi=i+1;
     const a=yt.filter(t=>t.month===mi&&t.type==="MAPATO").reduce((s,t)=>s+t.net,0);
@@ -2070,8 +1608,6 @@ function rDash(){
       </div>
       <span style="width:65px;text-align:right;color:${a-b>=0?"var(--teal)":"var(--red)"};font-weight:700">
         ${fmtS(a-b)}</span></div>`;}).join("");
-
-  // top 5
   const byCat={};
   yt.filter(t=>t.type==="MAPATO").forEach(t=>byCat[t.cat]=(byCat[t.cat]||0)+t.net);
   const top=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -2085,8 +1621,6 @@ function rDash(){
         <div class="pbar"><div class="pfill pi" style="width:${Math.round(val/mx2*100)}%"></div></div>
       </div>`).join("")
     :'<div class="empty"><span class="ei">📊</span>Bado hakuna data.</div>';
-
-  // recent 10
   document.getElementById("d-recent").innerHTML=TXN.slice(0,10).map(t=>`
     <tr class="${t.type==="MAPATO"?"ir":"er"}">
       <td style="white-space:nowrap">${t.date}</td>
@@ -2119,8 +1653,6 @@ function mDetail(month,y){
   const mt=TXN.filter(t=>t.year===y&&t.month===month);
   const inc=mt.filter(t=>t.type==="MAPATO"),exp=mt.filter(t=>t.type==="MATUMIZI");
   const ti=inc.reduce((s,t)=>s+t.net,0),te=exp.reduce((s,t)=>s+t.net,0);
-  const cs=list=>{const m={};list.forEach(t=>m[t.cat]=(m[t.cat]||0)+t.net);
-    return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
   document.getElementById("mdetail-t").textContent=`📅 ${MSW[month-1]} ${y}`;
   document.getElementById("mdetail-c").innerHTML=`
     <div style="display:flex;gap:.8rem;margin-bottom:.9rem;flex-wrap:wrap">
@@ -2199,24 +1731,6 @@ function rAnnual(){
           <td>❌ JUMLA YA MATUMIZI</td><td class="amt neg">${fmt(te)}</td><td class="amt">100%</td></tr>
       </tbody></table></div>`;
 }
-
-// ══════════════════════════════════════════════════
-// VEHICLES
-// ══════════════════════════════════════════════════
-// function rVeh(){ // see updated version below
-
-
-// ══════════════════════════════════════════════════
-// PROPERTIES
-// ══════════════════════════════════════════════════
-// function rProps(){ // see updated version below
-
-
-// ══════════════════════════════════════════════════
-// LIVESTOCK
-// ══════════════════════════════════════════════════
-// function rLive(){ // see updated version below
-
 
 // ══════════════════════════════════════════════════
 // SALARY
@@ -2324,27 +1838,25 @@ async function init(){
   document.getElementById("topdate").textContent=
     now.toLocaleDateString("sw-TZ",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
   document.getElementById("f-date").value=today();
-  // year selectors
   const y=now.getFullYear();
   const yrs=[y-1,y,y+1];
   ["m-yr","a-yr"].forEach(id=>{
     const s=document.getElementById(id);
     s.innerHTML=yrs.map(v=>`<option value="${v}" ${v===y?"selected":""}>${v}</option>`).join("");
   });
-  // filter selectors
   const fm=document.getElementById("fm");
   MSW.forEach((m,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=m;fm.appendChild(o);});
   const fy=document.getElementById("fy");
   [...new Set(TXN.map(t=>t.year))].sort((a,b)=>b-a).forEach(v=>{
     const o=document.createElement("option");o.value=v;o.textContent=v;fy.appendChild(o);
   });
+  populateRegionSelects();
   rDash(); rToday();
-  // mobile two-col
   if(window.innerWidth<700)document.querySelector(".two")?.style?.setProperty("grid-template-columns","1fr");
 }
 
 // ════════════════════════════════════════════════════════════
-// ASSET MANAGEMENT DATA STORES (localStorage keys)
+// ASSET MANAGEMENT DATA STORES
 // ════════════════════════════════════════════════════════════
 const KEY_LIVE = "kmm_livestock";
 const KEY_VEHS = "kmm_vehicles";
@@ -2352,22 +1864,16 @@ const KEY_PROP = "kmm_properties";
 const KEY_LAND = "kmm_land";
 const KEY_SOC  = "kmm_social";
 const KEY_CATS = "kmm_custom_cats";
-
 function loadStore(key, def){ try{return JSON.parse(localStorage.getItem(key))||def;}catch{return def;} }
 function saveStore(key, data){ localStorage.setItem(key, JSON.stringify(data)); saveAllToCloud(); }
 
-// Initial livestock state from user data
 let LIVESTOCK = loadStore(KEY_LIVE, {
-  "Ng'ombe":{ wakubwa:11, wadogo:0, majike:11, madume:3,
-    unitPrice:700000, history:[] },
-  "Mbuzi":  { wakubwa:15, wadogo:9, majike:12, madume:8,
-    unitPrice:100000, history:[] },
-  "Kondoo": { wakubwa:4,  wadogo:0, majike:0,  madume:0,
-    unitPrice:100000, history:[] },
+  "Ng'ombe":{ wakubwa:11, wadogo:0, majike:11, madume:3, unitPrice:700000, history:[] },
+  "Mbuzi":  { wakubwa:15, wadogo:9, majike:12, madume:8, unitPrice:100000, history:[] },
+  "Kondoo": { wakubwa:4,  wadogo:0, majike:0,  madume:0, unitPrice:100000, history:[] },
   "Maziwa": { lita:0, unitPrice:1000, history:[] },
   "Mbolea": { toroli:0, unitPrice:1000, history:[] },
 });
-
 let VEHICLES_REG = loadStore(KEY_VEHS, [
   {id:1,plate:"T.678 DUW",model:"Coaster",year:2010,cost:0,status:"Inaendesha",src:"Haijulikani",notes:"",date:""},
   {id:2,plate:"T.225 DNQ",model:"Coaster",year:2010,cost:0,status:"Inaendesha",src:"Haijulikani",notes:"",date:""},
@@ -2376,7 +1882,6 @@ let VEHICLES_REG = loadStore(KEY_VEHS, [
   {id:5,plate:"T.616 DDA",model:"Alphard",year:2016,cost:0,status:"Inaendesha",src:"Haijulikani",notes:"",date:""},
   {id:6,plate:"T.394 AVE",model:"Pickup",year:2012,cost:0,status:"Inaendesha",src:"Haijulikani",notes:"",date:""},
 ]);
-
 let PROP_REG = loadStore(KEY_PROP, []);
 let LAND_REG = loadStore(KEY_LAND, []);
 let SOC_LOG  = loadStore(KEY_SOC, []);
@@ -2387,7 +1892,6 @@ let CUSTOM_CATS = loadStore(KEY_CATS, {inc:[], exp:[]});
 // ════════════════════════════════════════════════════════════
 function openModal(id){
   document.getElementById(id).classList.add("on");
-  // Pre-fill dates
   const dIds = {
     'modal-addlive':'al-date','modal-rmlive':'rl-date',
     'modal-buyveh':'bv-date','modal-sellveh':'sv-date',
@@ -2397,7 +1901,6 @@ function openModal(id){
   };
   const dId = dIds[id];
   if(dId) document.getElementById(dId).value = today();
-  // Populate sell-vehicle dropdown
   if(id==='modal-sellveh'){
     const sel=document.getElementById("sv-plate");
     sel.innerHTML='<option value="">-- Chagua --</option>'+
@@ -2406,9 +1909,11 @@ function openModal(id){
   }
 }
 function closeModal(id){ document.getElementById(id).classList.remove("on"); }
-// Close on background click
 document.addEventListener("click", e=>{
   if(e.target.classList.contains("modal-bg")) e.target.classList.remove("on");
+  if(!e.target.closest('#kmm-more-wrap')){
+    const mm=document.getElementById('kmm-more-menu'); if(mm) mm.classList.remove('open');
+  }
 });
 
 // ════════════════════════════════════════════════════════════
@@ -2424,11 +1929,8 @@ function saveLiveAdd(){
   const region=document.getElementById("al-region")?.value||"";
   const condition=document.getElementById("al-condition")?.value||"Nzuri";
   if(!date||!type){toast("⚠️ Jaza tarehe na aina!","err");return;}
-
   const L=LIVESTOCK[type];
   if(!L){toast("❌ Aina hii haipo!","err");return;}
-
-  // Handle Maziwa/Mbolea separately
   if(type==="Maziwa"||type==="Mbolea"){
     const qty=parseInt(document.getElementById("al-qty")?.value)||0;
     if(!qty){toast("⚠️ Ingiza kiasi!","err");return;}
@@ -2438,7 +1940,6 @@ function saveLiveAdd(){
     L.history=L.history||[];
     L.history.push({date,event:"Ongeza",reason,qty,income,seller,region,notes});
     saveStore(KEY_LIVE, LIVESTOCK);
-    // Record as income
     const cat=type==="Maziwa"?"INCOME – Maziwa":"INCOME – Mbolea";
     TXN.unshift({id:Date.now(),date,type:"MAPATO",cat,
       desc:`Uuzaji wa ${type}: ${qty} ${type==="Maziwa"?"Lita":"Toroli"} @ TZS ${(L.unitPrice||1000).toLocaleString()} – ${seller}`,
@@ -2448,21 +1949,17 @@ function saveLiveAdd(){
     toast(`✅ ${type}: ${qty} imeongezwa. Mapato: ${fmt(income)}`,"ok");
     rLive(); return;
   }
-
   const wk=parseInt(document.getElementById("al-wakubwa").value)||0;
   const wd=parseInt(document.getElementById("al-wadogo").value)||0;
   const mj=parseInt(document.getElementById("al-majike").value)||0;
   const md=parseInt(document.getElementById("al-madume").value)||0;
   const total=wk+wd;
   if(!total){toast("⚠️ Ingiza idadi angalau moja!","err");return;}
-
   L.wakubwa+=wk; L.wadogo+=wd; L.majike+=mj; L.madume+=md;
   L.history=L.history||[];
   L.history.push({date,event:"Ongeza",reason,wakubwa:wk,wadogo:wd,
     majike:mj,madume:md,total,cost,seller,region,condition,notes});
   saveStore(KEY_LIVE, LIVESTOCK);
-
-  // Record cost as expenditure (cash goes out)
   if(cost>0){
     TXN.unshift({id:Date.now(),date,type:"MATUMIZI",
       cat:`MIFUGO – Matumizi ${type}`,
@@ -2475,7 +1972,6 @@ function saveLiveAdd(){
   toast(`✅ ${type} ${total} wameongezwa! Muuzaji: ${seller||"—"}`,"ok");
   rLive();
 }
-
 function saveLiveRemove(){
   const date=document.getElementById("rl-date").value;
   const type=document.getElementById("rl-type").value;
@@ -2487,12 +1983,10 @@ function saveLiveRemove(){
   const region=document.getElementById("rl-region")?.value||"";
   const condition=document.getElementById("rl-condition")?.value||"Nzuri";
   if(!date||!type){toast("⚠️ Jaza tarehe na aina!","err");return;}
-
   const L=LIVESTOCK[type];
   if(!L){toast("❌ Aina hii haipo!","err");return;}
   const total=L.wakubwa+L.wadogo;
   if(count>total){toast(`⚠️ Una ${type} ${total} tu. Imeingia ${count}!`,"err");return;}
-
   let rem=count;
   const wkRem=Math.min(rem,L.wakubwa); L.wakubwa-=wkRem; rem-=wkRem;
   if(rem>0) L.wadogo-=rem;
@@ -2502,8 +1996,6 @@ function saveLiveRemove(){
   L.history=L.history||[];
   L.history.push({date,event,count,amount,buyer,region,condition,notes});
   saveStore(KEY_LIVE, LIVESTOCK);
-
-  // Cash effect
   if(amount>0 && event==="Uza"){
     const catMap={"Ng'ombe":"INCOME – Mauzo ya Ng'ombe","Mbuzi":"INCOME – Mauzo ya Mbuzi","Kondoo":"INCOME – Mauzo ya Kondoo"};
     TXN.unshift({id:Date.now(),date,type:"MAPATO",
@@ -2518,7 +2010,6 @@ function saveLiveRemove(){
   toast(`✅ ${type} ${count} – ${event}. ${amount>0?"Mapato: "+fmt(amount):""} ${buyer?"Mnunuzi: "+buyer:""}`,"ok");
   rLive();
 }
-
 function editLivePrice(type){
   const cur=LIVESTOCK[type].unitPrice||0;
   const np=prompt(`Ingiza thamani ya soko ya ${type} 1 (TZS):
@@ -2546,11 +2037,9 @@ function saveVehBuy(){
   const region=document.getElementById("bv-region")?.value||"";
   const condition=document.getElementById("bv-condition")?.value||"Nzuri";
   if(!date||!plate||!model){toast("⚠️ Jaza tarehe, namba na aina!","err");return;}
-
   VEHICLES_REG.push({id:Date.now(),plate,model,year,cost,status:"Inaendesha",
     src,notes,date,seller,region,condition});
   saveStore(KEY_VEHS, VEHICLES_REG);
-
   if(!INC.includes(`HIRE – ${plate} (${model})`)){
     INC.push(`HIRE – ${plate} (${model})`);
     CUSTOM_CATS.inc.push(`HIRE – ${plate} (${model})`);
@@ -2559,7 +2048,6 @@ function saveVehBuy(){
     EXP.push(`REPAIR – ${plate} (${model})`);
     CUSTOM_CATS.exp.push(`REPAIR – ${plate} (${model})`);
   }
-  // Cash goes out
   if(cost>0){
     TXN.unshift({id:Date.now()+1,date,type:"MATUMIZI",
       cat:"My Car Service and Repair",
@@ -2574,7 +2062,6 @@ function saveVehBuy(){
   toast(`✅ Gari ${plate} limeongezwa! ${seller?"Muuzaji: "+seller:""}`,"ok");
   rVeh();
 }
-
 function saveVehSell(){
   const date=document.getElementById("sv-date").value;
   const vId=parseInt(document.getElementById("sv-plate").value);
@@ -2584,14 +2071,11 @@ function saveVehSell(){
   const region=document.getElementById("sv-region")?.value||"";
   const condition=document.getElementById("sv-condition")?.value||"Nzuri";
   if(!date||!vId){toast("⚠️ Chagua gari na tarehe!","err");return;}
-
   const veh=VEHICLES_REG.find(v=>v.id===vId);
   if(!veh){toast("❌ Gari halijapatikana!","err");return;}
   veh.status="Imeuzwa"; veh.soldDate=date;
   veh.soldAmount=amount; veh.buyer=buyer; veh.soldRegion=region;
   saveStore(KEY_VEHS, VEHICLES_REG);
-
-  // Cash comes in
   if(amount>0){
     TXN.unshift({id:Date.now(),date,type:"MAPATO",
       cat:`HIRE – ${veh.plate} (${veh.model})`,
@@ -2620,15 +2104,11 @@ function savePropBuy(){
   const seller=document.getElementById("bp-seller")?.value||"";
   const condition=document.getElementById("bp-condition")?.value||"Nzuri";
   if(!date||!name){toast("⚠️ Jaza tarehe na jina!","err");return;}
-
   PROP_REG.push({id:Date.now(),name,type,region,cost,src,notes,date,
     status:"Inamilikiwa",marketValue:cost,seller,condition});
   saveStore(KEY_PROP, PROP_REG);
-
   if(!INC.includes(`RENT – ${name}`)) INC.push(`RENT – ${name}`);
   if(!EXP.includes(`MAINT – ${name}`)) EXP.push(`MAINT – ${name}`);
-
-  // Cash goes out
   if(cost>0){
     TXN.unshift({id:Date.now()+1,date,type:"MATUMIZI",
       cat:"House Construction and Maintenance",
@@ -2642,7 +2122,6 @@ function savePropBuy(){
   toast(`✅ ${type} ${name} imeongezwa! ${seller?"Muuzaji: "+seller:""}`,"ok");
   rProps();
 }
-
 function savePropSell(){
   const date=document.getElementById("sp-date").value;
   const name=document.getElementById("sp-name").value.trim();
@@ -2652,13 +2131,10 @@ function savePropSell(){
   const region=document.getElementById("sp-region")?.value||"";
   const condition=document.getElementById("sp-condition")?.value||"Nzuri";
   if(!date||!name){toast("⚠️ Jaza tarehe na jina!","err");return;}
-
   const prop=PROP_REG.find(p=>p.name===name);
   if(prop){prop.status="Imeuzwa";prop.soldDate=date;prop.soldAmount=amount;
     prop.buyer=buyer;prop.soldRegion=region;}
   saveStore(KEY_PROP, PROP_REG);
-
-  // Cash comes in
   if(amount>0){
     TXN.unshift({id:Date.now(),date,type:"MAPATO",
       cat:"OTHER INCOME",
@@ -2672,7 +2148,6 @@ function savePropSell(){
   toast(`✅ Mali ${name} imeuzwa! ${buyer?"Mnunuzi: "+buyer:""}`,"ok");
   rProps();
 }
-
 function saveLandBuy(){
   const date=document.getElementById("bl-date").value;
   const name=document.getElementById("bl-name").value.trim();
@@ -2685,12 +2160,9 @@ function saveLandBuy(){
   const seller=document.getElementById("bl-seller")?.value||"";
   const condition=document.getElementById("bl-condition")?.value||"Wazi / Tupu";
   if(!date||!name){toast("⚠️ Jaza tarehe na jina!","err");return;}
-
   LAND_REG.push({id:Date.now(),name,region,area,size,cost,title,notes,date,
     status:"Inamilikiwa",marketValue:cost,seller,condition});
   saveStore(KEY_LAND, LAND_REG);
-
-  // Cash goes out
   if(cost>0){
     TXN.unshift({id:Date.now()+1,date,type:"MATUMIZI",
       cat:"House Construction and Maintenance",
@@ -2704,7 +2176,6 @@ function saveLandBuy(){
   toast(`✅ Kiwanja ${name} kimeongezwa! ${seller?"Muuzaji: "+seller:""}`,"ok");
   rProps();
 }
-
 function saveLandSell(){
   const date=document.getElementById("sl-date").value;
   const name=document.getElementById("sl-name").value.trim();
@@ -2714,13 +2185,10 @@ function saveLandSell(){
   const region=document.getElementById("sl-region")?.value||"";
   const condition=document.getElementById("sl-condition")?.value||"Wazi";
   if(!date||!name){toast("⚠️ Jaza tarehe na jina!","err");return;}
-
   const land=LAND_REG.find(l=>l.name===name);
   if(land){land.status="Imeuzwa";land.soldDate=date;land.soldAmount=amount;
     land.buyer=buyer;land.soldRegion=region;}
   saveStore(KEY_LAND, LAND_REG);
-
-  // Cash comes in
   if(amount>0){
     TXN.unshift({id:Date.now(),date,type:"MAPATO",
       cat:"OTHER INCOME",
@@ -2747,22 +2215,14 @@ function saveSocial(){
   const pay=document.getElementById("sc-pay").value;
   const notes=document.getElementById("sc-notes").value;
   if(!date||!type||!to||!amt){toast("⚠️ Jaza sehemu zote muhimu!","err");return;}
-
   SOC_LOG.unshift({id:Date.now(),date,type,to,rel,amount:amt,pay,notes});
   saveStore(KEY_SOC, SOC_LOG);
-
-  // Also record as expenditure
   const catMap={
-    "Harusi":"Social / Street Contribution",
-    "Misiba":"Condolences",
-    "Mchango wa Mtaa":"Social / Street Contribution",
-    "Msaada wa Dharura":"Emergency / Miscellaneous",
-    "Posho kwa Rafiki":"Social / Street Contribution",
-    "Sherehe":"Social / Street Contribution",
-    "Hospitali":"Medical / Health Expenses",
-    "Dini":"Social / Street Contribution",
-    "Elimu":"Social / Street Contribution",
-    "Nyingine":"Other Expenses",
+    "Harusi":"Social / Street Contribution","Misiba":"Condolences",
+    "Mchango wa Mtaa":"Social / Street Contribution","Msaada wa Dharura":"Emergency / Miscellaneous",
+    "Posho kwa Rafiki":"Social / Street Contribution","Sherehe":"Social / Street Contribution",
+    "Hospitali":"Medical / Health Expenses","Dini":"Social / Street Contribution",
+    "Elimu":"Social / Street Contribution","Nyingine":"Other Expenses",
   };
   TXN.unshift({id:Date.now()+1,date,type:"MATUMIZI",
     cat:catMap[type]||"Social / Street Contribution",
@@ -2770,8 +2230,6 @@ function saveSocial(){
     amount:amt,deduct:0,net:amt,notes:`${pay} – ${notes}`,
     month:mo(date),year:yr(date)});
   ls();
-
-  // Clear form
   ["sc-type","sc-to","sc-amt","sc-notes"].forEach(id=>{
     const el=document.getElementById(id);
     if(el.tagName==="SELECT")el.selectedIndex=0; else el.value="";
@@ -2780,7 +2238,6 @@ function saveSocial(){
   toast(`✅ Mchango wa ${type} umerekodiwa!`,"ok");
   rSocial();
 }
-
 function rSocial(){
   const totAmt=SOC_LOG.reduce((s,r)=>s+r.amount,0);
   const thisYr=new Date().getFullYear();
@@ -2793,12 +2250,8 @@ function rSocial(){
       <div class="kv">${fmtS(yrAmt)}</div><div class="ks2">Matukio ${SOC_LOG.filter(r=>new Date(r.date).getFullYear()===thisYr).length}</div></div>
     <div class="kpi kn"><div class="kl">Matukio Yote</div>
       <div class="kv">${SOC_LOG.length}</div><div class="ks2">Tangu mwanzo</div></div>`;
-
-  // By category
   const byCat={};
-  SOC_LOG.forEach(r=>byCat[r.type]=(byCat[r.type]||{c:0,a:0}),
-    SOC_LOG.forEach(r=>{if(!byCat[r.type])byCat[r.type]={c:0,a:0};
-      byCat[r.type].c++;byCat[r.type].a+=r.amount;}));
+  SOC_LOG.forEach(r=>{if(!byCat[r.type])byCat[r.type]={c:0,a:0};byCat[r.type].c++;byCat[r.type].a+=r.amount;});
   const icons={"Harusi":"💍","Misiba":"🕊️","Mchango wa Mtaa":"🏘️",
     "Msaada wa Dharura":"🆘","Posho kwa Rafiki":"👫","Sherehe":"🎉",
     "Hospitali":"🏥","Dini":"🕌","Elimu":"📚","Nyingine":"📌"};
@@ -2809,7 +2262,6 @@ function rSocial(){
       <div class="arow"><span class="al">Matukio</span><span class="av">${d.c}</span></div>
       <div class="arow"><span class="al">Jumla</span><span class="av neg">${fmt(d.a)}</span></div>
     </div>`).join("") || '<div class="empty"><span class="ei">🤝</span>Bado hakuna michango.</div>';
-
   document.getElementById("soc-body").innerHTML=SOC_LOG.length
     ?SOC_LOG.map(r=>`<tr>
       <td style="white-space:nowrap">${r.date}</td>
@@ -2832,11 +2284,9 @@ function saveNewInc(){
   const notes=document.getElementById("ni-notes").value;
   if(!name){toast("⚠️ Andika jina la chanzo kipya!","err");return;}
   if(INC.includes(name)){toast("⚠️ Chanzo hiki kipo tayari!","err");return;}
-
   INC.push(name);
   CUSTOM_CATS.inc.push(name);
   saveStore(KEY_CATS, CUSTOM_CATS);
-
   if(amt>0){
     TXN.unshift({id:Date.now(),date,type:"MAPATO",cat:name,
       desc:notes||name,amount:amt,deduct:0,net:amt,notes,
@@ -2849,7 +2299,6 @@ function saveNewInc(){
   closeModal("modal-newinc");
   toast(`✅ Chanzo kipya "${name}" kimeongezwa!`,"ok");
 }
-
 function saveNewExp(){
   const name=document.getElementById("ne-name").value.trim();
   const amt=parseFloat(document.getElementById("ne-amt").value)||0;
@@ -2857,11 +2306,9 @@ function saveNewExp(){
   const notes=document.getElementById("ne-notes").value;
   if(!name){toast("⚠️ Andika jina la aina mpya!","err");return;}
   if(EXP.includes(name)){toast("⚠️ Aina hii ipo tayari!","err");return;}
-
   EXP.push(name);
   CUSTOM_CATS.exp.push(name);
   saveStore(KEY_CATS, CUSTOM_CATS);
-
   if(amt>0){
     TXN.unshift({id:Date.now(),date,type:"MATUMIZI",cat:name,
       desc:notes||name,amount:amt,deduct:0,net:amt,notes,
@@ -2876,7 +2323,7 @@ function saveNewExp(){
 }
 
 // ════════════════════════════════════════════════════════════
-// RENDER: LIVESTOCK (updated)
+// RENDER: LIVESTOCK
 // ════════════════════════════════════════════════════════════
 function rLive(){
   const animals=[
@@ -2909,8 +2356,6 @@ function rLive(){
         <span class="al" style="font-weight:700">💰 Faida/Hasara</span>
         <span class="av ${net>=0?"pos":"neg"}" style="font-weight:700">${fmt(net)}</span></div>
     </div>`;}).join("");
-
-  // Render register table
   document.getElementById("live-reg-body").innerHTML=
     Object.entries(LIVESTOCK).map(([type,L])=>{
       const total=L.wakubwa+L.wadogo;
@@ -2928,8 +2373,6 @@ function rLive(){
               onclick="openModal('modal-rmlive');document.getElementById('rl-type').value='${type}'">
               🔪</button>
         </td></tr>`;}).join("");
-
-  // History
   const allHist=Object.entries(LIVESTOCK).flatMap(([type,L])=>
     (L.history||[]).map(h=>({...h,animal:type}))).sort((a,b)=>b.date.localeCompare(a.date));
   const evtIcon={"Ongeza":"➕","Uza":"💰","Chinja":"🍖","Kufa":"💀","Zawadi":"🎁"};
@@ -2946,10 +2389,9 @@ function rLive(){
 }
 
 // ════════════════════════════════════════════════════════════
-// RENDER: VEHICLES (updated)
+// RENDER: VEHICLES
 // ════════════════════════════════════════════════════════════
 function rVeh(){
-  // Summary cards (existing + new)
   const allVehs=[...VEHICLES_REG,...(VEHS.filter(v=>!VEHICLES_REG.find(r=>r.plate===v.p)).map(v=>
     ({id:v.p,plate:v.p,model:v.m,year:"",cost:0,status:"Inaendesha",src:"",notes:"",date:""})))];
   document.getElementById("vcards").innerHTML=allVehs.filter(v=>v.status!=="Imeuzwa").map(v=>{
@@ -2971,8 +2413,6 @@ function rVeh(){
         color:${net>0?"var(--teal)":net<0?"var(--red)":"var(--muted)"}">
         ${net>0?"✅ FAIDA":net<0?"❌ HASARA":"— HAKUNA DATA"}</div>
     </div>`;}).join("");
-
-  // Register table
   document.getElementById("veh-reg-body").innerHTML=allVehs.map(v=>{
     const hc=`HIRE – ${v.plate} (${v.model})`,rc=`REPAIR – ${v.plate} (${v.model})`;
     const inc=TXN.filter(t=>t.cat===hc&&t.type==="MAPATO").reduce((s,t)=>s+t.net,0);
@@ -2990,7 +2430,7 @@ function rVeh(){
 }
 
 // ════════════════════════════════════════════════════════════
-// RENDER: PROPERTIES (updated with land)
+// RENDER: PROPERTIES
 // ════════════════════════════════════════════════════════════
 function rProps(){
   document.getElementById("pregions").innerHTML=Object.entries(PROPS).map(([reg,units])=>`
@@ -3010,7 +2450,6 @@ function rProps(){
             <span class="av ${net>=0?"pos":"neg"}" style="font-weight:700">${fmt(net)}</span></div>
         </div>`;}).join("")}</div>
     </div>`).join("") +
-  // New properties from register
   (PROP_REG.length ? `<div style="margin-bottom:1.4rem">
     <div class="shdr sh-i">🏗️ Nyumba Zilizonunuliwa / Kujengwa</div>
     <div class="agrid">${PROP_REG.map(p=>{
@@ -3026,7 +2465,6 @@ function rProps(){
         <div class="arow"><span class="al">💚 Kodi</span><span class="av pos">${fmt(inc)}</span></div>
         <div class="arow"><span class="al">💰 Faida</span><span class="av ${net>=0?"pos":"neg"}">${fmt(net)}</span></div>
       </div>`;}).join("")}</div></div>` : "") +
-  // Land register
   (LAND_REG.length ? `<div style="margin-bottom:1.4rem">
     <div class="shdr sh-i">🌍 Viwanja</div>
     <div class="agrid">${LAND_REG.map(l=>`
@@ -3039,8 +2477,6 @@ function rProps(){
         <div class="arow"><span class="al">Gharama</span><span class="av">${fmt(l.cost)}</span></div>
         ${l.soldAmount?`<div class="arow"><span class="al">Imeuzwa kwa</span><span class="av pos">${fmt(l.soldAmount)}</span></div>`:""}
       </div>`).join("")}</div></div>` : "");
-
-  // Register table
   const allProps=[
     ...PROP_REG.map(p=>({...p,assetType:"Nyumba"})),
     ...LAND_REG.map(l=>({...l,assetType:"Kiwanja",type:"Kiwanja"}))
@@ -3071,8 +2507,6 @@ function saveRecvSocial(){
   const pay=document.getElementById("rs-pay").value;
   const notes=document.getElementById("rs-notes").value;
   if(!date||!type||!from||!amt){toast("⚠️ Jaza sehemu zote!","err");return;}
-
-  // Record as INCOME (cash comes in)
   TXN.unshift({id:Date.now(),date,type:"MAPATO",
     cat:"GIFTS & CONTRIBUTIONS RECEIVED",
     desc:`${type} iliyopokelewa kutoka: ${from} (${rel})`,
@@ -3080,13 +2514,10 @@ function saveRecvSocial(){
     notes:`Aina ya Malipo: ${pay} | ${notes}`,
     month:mo(date),year:yr(date)});
   ls();
-
-  // Also log in social log
   SOC_LOG = loadStore(KEY_SOC, []);
   SOC_LOG.unshift({id:Date.now()+1,date,type:`📥 ${type}`,to:from,rel,amount:amt,
     pay,notes,direction:"POKEA"});
   saveStore(KEY_SOC, SOC_LOG);
-
   ["rs-type","rs-from","rs-amt","rs-notes"].forEach(id=>{
     const el=document.getElementById(id);
     if(el.tagName==="SELECT")el.selectedIndex=0; else el.value="";
@@ -3119,7 +2550,6 @@ function onAlTypeChange(){
     }
   }
 }
-// init() is now triggered automatically after login (see auth.onAuthStateChanged above)
 </script>
 
 <!-- Recovery Modal -->
@@ -3167,14 +2597,11 @@ function onAlTypeChange(){
       </button>
     </div>
   </div>
-  <!-- KPI -->
   <div class="kgrid" id="soc-kpis"></div>
-  <!-- Category breakdown -->
   <div class="card">
     <div class="ct">📊 Michango kwa Aina</div>
     <div class="social-grid" id="soc-cats"></div>
   </div>
-  <!-- Full list -->
   <div class="card">
     <div class="ct">📋 Orodha ya Michango Yote</div>
     <div class="twrap"><table class="live-tbl">
