@@ -392,11 +392,39 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
         localStorage.setItem(KEY_LAND, JSON.stringify(d.land||[]));
         localStorage.setItem(KEY_SOC,  JSON.stringify(d.social||[]));
         localStorage.setItem(KEY_CATS, JSON.stringify(d.custom_cats||[]));
+        // Kategoria za MAPATO/MATUMIZI ni za AKAUNTI HII PEKEE — hazitokani tena na orodha
+        // moja ya pamoja. Kila mtumiaji anaona na kuhariri zake tu.
+        let needsCatMigration=false;
+        if(Array.isArray(d.incomeCategories) && d.incomeCategories.length){
+          INC = d.incomeCategories.slice();
+        } else {
+          // Akaunti ya ZAMANI (kabla ya kategoria-kwa-kila-mtumiaji) — ipe orodha yake ya awali
+          // (LEGACY_OWNER) pamoja na chochote alichokuwa ameongeza mwenyewe, ili DATA YAKE
+          // YA ASILI ISIPOTEE. Baada ya hapo, itahifadhiwa kama data yake ya kudumu.
+          INC = LEGACY_OWNER_INC.slice();
+          ((d.custom_cats&&d.custom_cats.inc)||[]).forEach(c=>{ if(!INC.includes(c)) INC.push(c); });
+          needsCatMigration=true;
+        }
+        if(Array.isArray(d.expenseCategories) && d.expenseCategories.length){
+          EXP = d.expenseCategories.slice();
+        } else {
+          EXP = LEGACY_OWNER_EXP.slice();
+          ((d.custom_cats&&d.custom_cats.exp)||[]).forEach(c=>{ if(!EXP.includes(c)) EXP.push(c); });
+          needsCatMigration=true;
+        }
+        if(needsCatMigration){
+          // Hifadhi mara moja ili "uhamisho" huu usifanyike tena kila akifungua programu
+          await cloudDocRef().set({incomeCategories:INC, expenseCategories:EXP}, {merge:true});
+        }
       } else {
         TXN=[];
+        // Akaunti MPYA kabisa — ipewe kategoria za KUANZIA za jumla, si za mtu mwingine.
+        INC = DEFAULT_INC.slice();
+        EXP = DEFAULT_EXP.slice();
         await cloudDocRef().set({
           transactions:[], livestock:[], vehicles:[], properties:[],
-          land:[], social:[], custom_cats:[], updated:new Date().toISOString()
+          land:[], social:[], custom_cats:[], incomeCategories:INC, expenseCategories:EXP,
+          updated:new Date().toISOString()
         });
       }
     }catch(e){
@@ -418,6 +446,8 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
           land:loadStore(KEY_LAND,[]),
           social:loadStore(KEY_SOC,[]),
           custom_cats:loadStore(KEY_CATS,[]),
+          incomeCategories:INC,
+          expenseCategories:EXP,
           updated:new Date().toISOString()
         },{merge:true});
       }catch(e){
@@ -556,6 +586,7 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
   <button class="nb"     onclick="go('salary',this)">💼 Mshahara</button>
   <button class="nb"     onclick="go('social',this)">🤝 Michango</button>
   <button class="nb"     onclick="go('advisory',this)">💡 Ushauri</button>
+  <button class="nb"     onclick="go('categories',this)">🏷️ Vipengele</button>
 </nav>
 
 <div class="main">
@@ -1157,6 +1188,30 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
   <div class="adv-list" id="adv-list"></div>
 </div>
 
+<!-- CATEGORIES (VIPENGELE) -->
+<div class="pg" id="pg-categories">
+  <div class="rhdr"><div><h2>🏷️ Vipengele vya Mapato na Matumizi</h2>
+    <p>Hivi ni vipengele vyako binafsi pekee — ongeza, hariri au futa unavyotaka. Hazionekani kwa mtumiaji mwingine yeyote.</p></div></div>
+  <div class="two">
+    <div class="card">
+      <div class="ct">💚 Vipengele vya MAPATO (<span id="cat-inc-count">0</span>)</div>
+      <div class="brow" style="margin-top:0;margin-bottom:.8rem">
+        <input type="text" id="new-inc-cat-name" placeholder="Ongeza kipengele kipya cha mapato..." style="flex:1;border:1.5px solid var(--border);border-radius:7px;padding:.5rem .7rem;font:inherit;font-size:.85rem">
+        <button class="btn bs bsm" onclick="addCategory('inc')">➕ Ongeza</button>
+      </div>
+      <div id="cat-inc-list"></div>
+    </div>
+    <div class="card">
+      <div class="ct">❤️ Vipengele vya MATUMIZI (<span id="cat-exp-count">0</span>)</div>
+      <div class="brow" style="margin-top:0;margin-bottom:.8rem">
+        <input type="text" id="new-exp-cat-name" placeholder="Ongeza kipengele kipya cha matumizi..." style="flex:1;border:1.5px solid var(--border);border-radius:7px;padding:.5rem .7rem;font:inherit;font-size:.85rem">
+        <button class="btn bd" style="font-size:.85rem;padding:.5rem 1rem" onclick="addCategory('exp')">➕ Ongeza</button>
+      </div>
+      <div id="cat-exp-list"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 <div class="toast" id="toast"></div>
 
@@ -1164,7 +1219,10 @@ td.pos{color:var(--teal)}td.neg{color:var(--red)}
 // ══════════════════════════════════════════════════
 // CATEGORIES
 // ══════════════════════════════════════════════════
-const INC=[
+// Hii ndiyo orodha ya AWALI ya kategoria za mmiliki wa kwanza wa mfumo huu (data yake binafsi
+// iliyotumika kujenga programu hii). Haitumiwi tena kwa watumiaji wapya — inahifadhiwa hapa TU
+// ili akaunti yake ya asili iendelee kuiona kama ilivyokuwa (angalia loadFromCloud/migration).
+const LEGACY_OWNER_INC=[
   "SALARY FROM TMS","PER DIEM TMS","OTHER ALLOWANCE FROM TMS",
   "SALARY FROM KCL","ALLOWANCE FROM KCL",
   "INCOME FROM FARM (DOM)","INCOME FROM CASHEW NUTS FARM","PROFIT FROM SHOP",
@@ -1181,7 +1239,7 @@ const INC=[
   "GIFTS & CONTRIBUTIONS RECEIVED","OTHER INCOME",
   "INCOME FROM HOUSE RENT (Dom)","INCOME FROM HOUSE RENT (Mbeya)","INCOME FROM HOUSE RENT (Mtwara)"
 ];
-const EXP=[
+const LEGACY_OWNER_EXP=[
   "Ada yangu ya Chuo","Chakula changu","Kodi ya Nyumba yangu","Mafuta ya Gari yangu",
   "Umeme wa Nyumba yangu","Bundle Internet & Simu","Azam Subscription",
   "Laundry and Cleaning","Security","Bill ya Maji",
@@ -1207,6 +1265,18 @@ const EXP=[
   "Loan Repayment","Emergency / Miscellaneous","Other Expenses",
   "RENT – MTWARA (MTR/64A/08)","RENT – MTWARA (MTR/64A/07)"
 ];
+// Kategoria za KUANZIA kwa MTUMIAJI YEYOTE MPYA anayejisajili — orodha fupi, ya jumla, isiyo
+// na taarifa binafsi za mtu mwingine. Kila mtumiaji anaweza kuhariri/kufuta/kuongeza zake mwenyewe.
+const DEFAULT_INC=[
+  "Mshahara","Biashara / Faida ya Duka","Kilimo","Ufugaji","Kodi ya Nyumba/Chumba",
+  "Mkopo Uliopokelewa","Zawadi / Mchango Ulioupokea","Mapato Mengineyo"
+];
+const DEFAULT_EXP=[
+  "Chakula","Kodi ya Nyumba","Umeme na Maji","Usafiri","Mavazi","Elimu / Ada",
+  "Afya / Matibabu","Mawasiliano (Simu/Internet)","Michango ya Kijamii","Malipo ya Mkopo",
+  "Matengenezo ya Gari/Nyumba","Matumizi Mengineyo"
+];
+let INC=[]; let EXP=[]; // hujazwa kwa data ya mtumiaji husika pekee (angalia loadFromCloud)
 const VEHS=[
   {p:"T.678 DUW",m:"Coaster"},{p:"T.225 DNQ",m:"Coaster"},
   {p:"T.728 EDK",m:"Range Rover"},{p:"T.475 DGR",m:"Harrier"},
@@ -1345,7 +1415,18 @@ function updateStatus(){
       <span style="color:#546E7A;font-size:.75rem;margin-left:.5rem">(Inahifadhi kwenye kivinjari + auto-backup)</span>`;
   }
 }
+function ensureCategoriesExist(){
+  // Baadhi ya fomu maalum (Magari, Nyumba, Viwanja, Mifugo, Michango) huweka miamala na majina
+  // ya kundi moja kwa moja. Hii huhakikisha kundi hilo linaonekana pia kwenye orodha ya
+  // "Vipengele" ya mtumiaji (ili aweze kuliona, kulihariri au kulifuta baadaye).
+  TXN.forEach(t=>{
+    if(!t.cat) return;
+    if(t.type==="MAPATO" && !INC.includes(t.cat)) INC.push(t.cat);
+    if(t.type==="MATUMIZI" && !EXP.includes(t.cat)) EXP.push(t.cat);
+  });
+}
 async function ls(){
+  ensureCategoriesExist();
   try{ localStorage.setItem(KEY,JSON.stringify(TXN)); }catch(e){}
   await idbSet(TXN);
   if(fileHandle){ await writeToFile(TXN); }
@@ -1416,7 +1497,7 @@ function deduct(cat,gross){
 // ══════════════════════════════════════════════════
 // NAV
 // ══════════════════════════════════════════════════
-const pages={dash:rDash,entry:rToday,txns:rTxns,monthly:rMonthly,annual:rAnnual,
+const pages={dash:rDash,entry:rToday,txns:rTxns,monthly:rMonthly,annual:rAnnual,categories:rCategories,
              vehicles:rVeh,props:rProps,livestock:rLive,salary:rSal,advisory:rAdv,social:rSocial};
 function go(id,btn){
   document.querySelectorAll(".pg").forEach(p=>p.classList.remove("on"));
@@ -1817,6 +1898,67 @@ function rAdv(){
       <div class="adv-icon">${a.i}</div>
       <div><div class="adv-t">${a.t}</div><div class="adv-b">${a.b}</div></div>
     </div>`).join("");
+}
+
+// ══════════════════════════════════════════════════
+// VIPENGELE (Kategoria za Mapato/Matumizi — kwa kila mtumiaji binafsi)
+// ══════════════════════════════════════════════════
+function rCategories(){
+  document.getElementById("cat-inc-count").textContent=INC.length;
+  document.getElementById("cat-exp-count").textContent=EXP.length;
+  const rowsFor=(list,type)=> list.length ? list.map(name=>{
+    const inUse = TXN.some(t=>t.cat===name && t.type===(type==='inc'?'MAPATO':'MATUMIZI'));
+    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--alt)">
+      <span style="font-size:.85rem">${name}${inUse?' <span class="chip" style="font-size:.62rem">Inatumika</span>':''}</span>
+      <span style="display:flex;gap:.4rem;flex-shrink:0">
+        <button class="qb qb-blue" style="padding:.2rem .55rem;font-size:.7rem" onclick="editCategory('${type}','${name.replace(/'/g,"\\'")}')">✏️</button>
+        <button class="qb qb-red" style="padding:.2rem .55rem;font-size:.7rem" onclick="deleteCategory('${type}','${name.replace(/'/g,"\\'")}')">🗑️</button>
+      </span>
+    </div>`;
+  }).join("") : '<div class="empty" style="padding:1rem"><span class="ei">🏷️</span>Bado hakuna vipengele. Ongeza kimoja hapo juu.</div>';
+  document.getElementById("cat-inc-list").innerHTML=rowsFor(INC,'inc');
+  document.getElementById("cat-exp-list").innerHTML=rowsFor(EXP,'exp');
+}
+function addCategory(type){
+  const inputId = type==='inc' ? 'new-inc-cat-name' : 'new-exp-cat-name';
+  const el = document.getElementById(inputId);
+  const name = el.value.trim();
+  if(!name){ toast("⚠️ Andika jina la kipengele kwanza","err"); return; }
+  const list = type==='inc' ? INC : EXP;
+  if(list.includes(name)){ toast("⚠️ Kipengele hiki kipo tayari","err"); return; }
+  list.push(name);
+  el.value="";
+  ls(); rCategories();
+  toast(`✅ Kipengele "${name}" kimeongezwa`,"ok");
+}
+function editCategory(type, oldName){
+  const newName = prompt("Badilisha jina la kipengele:", oldName);
+  if(newName===null) return;
+  const trimmed = newName.trim();
+  if(!trimmed){ toast("⚠️ Jina haliwezi kuwa tupu","err"); return; }
+  const list = type==='inc' ? INC : EXP;
+  if(trimmed!==oldName && list.includes(trimmed)){ toast("⚠️ Kipengele chenye jina hilo kipo tayari","err"); return; }
+  const idx = list.indexOf(oldName);
+  if(idx===-1) return;
+  list[idx]=trimmed;
+  // Sasisha miamala yote ya awali iliyotumia jina la zamani ili isipotee/kukosa kundi
+  const txnType = type==='inc' ? 'MAPATO' : 'MATUMIZI';
+  let updated=0;
+  TXN.forEach(t=>{ if(t.cat===oldName && t.type===txnType){ t.cat=trimmed; updated++; } });
+  ls(); rCategories();
+  toast(`✅ Kimebadilishwa kuwa "${trimmed}"${updated?` (miamala ${updated} imesasishwa)`:''}`,"ok");
+}
+function deleteCategory(type, name){
+  const list = type==='inc' ? INC : EXP;
+  const txnType = type==='inc' ? 'MAPATO' : 'MATUMIZI';
+  const usedCount = TXN.filter(t=>t.cat===name && t.type===txnType).length;
+  let msg = `Una uhakika unataka kufuta kipengele "${name}"?`;
+  if(usedCount>0) msg += `\n\n⚠️ Kipengele hiki kinatumika kwenye miamala ${usedCount} iliyopo. Miamala hiyo HAITAFUTWA, lakini itabaki na jina la kundi hili la zamani hadi utakapoyahariri mwenyewe kuyapeleka kundi jingine.`;
+  if(!confirm(msg)) return;
+  const idx = list.indexOf(name);
+  if(idx>-1) list.splice(idx,1);
+  ls(); rCategories();
+  toast(`🗑 Kipengele "${name}" kimefutwa`,"ok");
 }
 
 // ══════════════════════════════════════════════════
